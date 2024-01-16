@@ -1,4 +1,4 @@
-class Neuron:    
+class Neuron:
     def __init__(self, inputs, weights, bias):
         if len(inputs) is not len(weights):
             raise ValueError('number of inputs and weights must be equal')

@@ -23,7 +23,7 @@ def init():
         
         numpy.random.seed(0)
         
-        np_fmt = "{: .10f}".format
+        np_fmt = "{: .8f}".format
         numpy.set_printoptions(formatter={'float_kind':np_fmt, 'int_kind':np_fmt})
         
         setattr(numpy, 'zeros', numpy_zeros)
@@ -32,3 +32,4 @@ def init():
         print('SNN initialized')
 
 init.done = False
+init()

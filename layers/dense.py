@@ -27,7 +27,6 @@ class Dense(Layer):
         return Layer.str(self, n)
 
     def forward(self):
-        if self.activation:
-            return self.activation(numpy.dot(self.inputs, self.weights) + self.biases)
-        else:
-            return numpy.dot(self.inputs, self.weights) + self.biases
+        if not self.activation:
+            raise RuntimeError('No activation function assigned.')
+        return self.activation(numpy.dot(self.inputs, self.weights) + self.biases)

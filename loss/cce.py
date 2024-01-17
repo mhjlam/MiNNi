@@ -10,7 +10,7 @@ def categorical_cross_entropy(predictions, targets):
     if len(targets.shape) == 1:
         confidences = predictions[range(samples), targets]
     elif len(targets.shape) == 2:
-        confideces = numpy.sum(predictions * targets, axis=1)\
+        confidences = numpy.sum(predictions * targets, axis=1)
     
     # losses
     return numpy.mean(-numpy.log(confidences)) # mean loss

@@ -17,4 +17,4 @@ class Layer:
          return self.__str__()
 
    def forward(self, inputs):
-      return numpy.dot(inputs, self.weights) + self.biases
+      pass # todo implement

@@ -3,7 +3,7 @@ import numpy
 # Copyright (c) 2015 Andrej Karpathy
 # License: https://github.com/cs231n/cs231n.github.io/blob/master/LICENSE
 # Source: https://cs231n.github.io/neural-networks-case-study/
-def generate(samples=100, classes=3, dimensionality=2):
+def generate_spiral(samples=100, classes=3, dimensionality=2):
     X = numpy.zeros((samples*classes, dimensionality))  # data matrix (each row = single example)
     y = numpy.zeros(samples*classes, dtype='uint8')     # class labels
 

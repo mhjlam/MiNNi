@@ -5,24 +5,42 @@
 ```python
 import snn
 import snn.activation
-import snn.dataset
-import snn.layers
+import snn.data
+import snn.layer
 import snn.loss
 
-X, y = snn.dataset.generate_spiral(samples=100, classes=3)
+samples, labels = snn.data.generate_spiral(100, 3)
 
-# Use Rectified Linear activation function on the hidden layer
-layer1 = snn.layers.Dense(inputs=X, n_neurons=3, activation=snn.activation.ReLU)
+dense1 = snn.layer.Dense(2, 3)
+activation1 = snn.activation.ReLu()
 
-# Use Softmax activation function for the output layer
-layer2 = snn.layers.Dense(inputs=layer1.forward(), n_neurons=3, activation=snn.activation.Softmax)
+dense2 = snn.layer.Dense(3, 3)
+loss_activation = snn.activation.SoftmaxCrossEntropy()
 
-y_hat = layer2.forward()
-print(y_hat[:5])
+def forward_pass(samples, labels):
+    dense1_output = dense1.forward(samples)
+    act1_output = activation1.forward(dense1_output)
+    dense2_output = dense2.forward(act1_output)
+    loss = loss_activation.forward(dense2_output, labels)
+    
+    print('\nFORWARD PASS')
+    print(loss_activation.output[:5])
+    print('loss:', loss)
+    print('accuracy:', snn.loss.accuracy(loss_activation.output, labels))
 
-loss = snn.loss.categorical_cross_entropy(y_hat, y)
-print('loss:', loss)
+def backward_pass():
+    loss_activation_dinputs = loss_activation.backward(loss_activation.output, labels)
+    dense2_gradients = dense2.backward(loss_activation_dinputs)
+    activation1_dinputs = activation1.backward(dense2.dinputs)
+    dense1_gradients = dense1.backward(activation1_dinputs)
+    
+    print('\nBACKWARD PASS')
+    print(dense1_gradients.dweights)
+    print(dense1_gradients.dbiases)
+    print()
+    print(dense2_gradients.dweights)
+    print(dense2_gradients.dbiases)
 
-accuracy = snn.loss.accuracy(y_hat, y)
-print('accuracy:', accuracy)
+forward_pass(samples, labels)
+backward_pass()
 ```

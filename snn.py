@@ -1,4 +1,7 @@
 import numpy
+from collections import namedtuple
+
+Gradient = namedtuple('Gradient', 'dweights dbiases dinputs')
 
 npz = getattr(numpy, 'zeros')
 npr = getattr(numpy.random, 'randn')

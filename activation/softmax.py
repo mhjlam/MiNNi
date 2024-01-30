@@ -8,7 +8,7 @@ class Softmax(Activation):
         # Unnormalized probabilities
         exp_values = numpy.exp(inputs - numpy.max(inputs, axis=1, keepdims=True))
         
-        # Return normalized probabilities for each sample
+        # Normalized probabilities for each sample
         self.output = exp_values / numpy.sum(exp_values, axis=1, keepdims=True)
         return self.output
 

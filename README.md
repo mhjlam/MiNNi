@@ -13,28 +13,26 @@ import snn.optimizer
 X, y = snn.data.generate_spiral(samples=100, classes=3)
 
 dense1 = snn.layer.Dense(2, 64)
-activation1 = snn.activation.ReLu()
+relu1 = snn.activation.ReLu()
 
 dense2 = snn.layer.Dense(64, 3)
-loss_activation = snn.activation.SoftmaxCrossEntropy()
+sce_loss = snn.activation.SoftmaxCrossEntropy()
 
+#optimizer = snn.optimizer.Adam(learning_rate=0.05, decay=5e-7) 
 optimizer = snn.optimizer.Adam(learning_rate=0.05, decay=5e-7)
 
 for epoch in range(10001):
     ### Forward pass ###
-    loss, out = loss_activation.forward(dense2.forward(activation1.forward(dense1.forward(X))), y)
-    accuracy = snn.loss.accuracy(loss_activation.output, y)
+    loss, out = sce_loss.forward(dense2.forward(relu1.forward(dense1.forward(X))), y)
+    accuracy = snn.loss.accuracy(out, y)
 
     ### Progress ###
     if not epoch % 100:
         print(snn.epoch_stats(epoch, accuracy, loss, optimizer.current_learning_rate))
     
     ### Backward pass ###
-    dense1.backward(activation1.backward(dense2.backward(loss_activation.backward(out, y))))
+    dense1.backward(relu1.backward(dense2.backward(sce_loss.backward(out, y))))
     
     ### Optimizer ###
-    optimizer.pre_update()
-    optimizer.update_params(dense1)
-    optimizer.update_params(dense2)
-    optimizer.post_update()
+    optimizer.update([dense1, dense2])
 ```

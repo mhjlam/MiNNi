@@ -24,12 +24,10 @@ for epoch in range(10001):
     ### Forward pass ###
     loss = loss_activation.forward(dense2.forward(activation1.forward(dense1.forward(X))), y)
     accuracy = snn.loss.accuracy(loss_activation.output, y)
-    
+
+    ### Progress ###
     if not epoch % 100:
-        print(f'epoch: {epoch:>5}, ' +
-              f'accuracy: {accuracy:.4f}, ' +
-              f'loss: {loss:.4f}, ' +
-              f'learning rate: {optimizer.current_learning_rate:.4f}')
+        print(snn.epoch_stats(epoch, accuracy, loss, optimizer.current_learning_rate))
     
     ### Backward pass ###
     dense1.backward(activation1.backward(dense2.backward(loss_activation.backward(loss_activation.output, y))))

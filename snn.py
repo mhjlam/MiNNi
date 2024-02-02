@@ -20,6 +20,9 @@ def numpy_eye(*args, **kwargs):
         kwargs['dtype'] = 'float32'
     return npe(*args, **kwargs)
 
+def epoch_stats(epoch, accuracy, loss, learning_rate):
+    return f'epoch: {epoch:>5}, accuracy: {accuracy:.4f}, loss: {loss:.4f}, learning rate: {learning_rate:.4f}'
+
 def init():
     if not init.done:
         init.done = True

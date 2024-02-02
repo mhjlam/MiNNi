@@ -22,7 +22,7 @@ optimizer = snn.optimizer.Adam(learning_rate=0.05, decay=5e-7)
 
 for epoch in range(10001):
     ### Forward pass ###
-    loss = loss_activation.forward(dense2.forward(activation1.forward(dense1.forward(X))), y)
+    loss, out = loss_activation.forward(dense2.forward(activation1.forward(dense1.forward(X))), y)
     accuracy = snn.loss.accuracy(loss_activation.output, y)
 
     ### Progress ###
@@ -30,7 +30,7 @@ for epoch in range(10001):
         print(snn.epoch_stats(epoch, accuracy, loss, optimizer.current_learning_rate))
     
     ### Backward pass ###
-    dense1.backward(activation1.backward(dense2.backward(loss_activation.backward(loss_activation.output, y))))
+    dense1.backward(activation1.backward(dense2.backward(loss_activation.backward(out, y))))
     
     ### Optimizer ###
     optimizer.pre_update()

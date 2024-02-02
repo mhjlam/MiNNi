@@ -11,7 +11,7 @@ class SoftmaxCrossEntropy(Activation):
         
     def forward(self, inputs, targets):
         self.output = self.activation.forward(inputs)
-        return self.loss.compute(self.output, targets)
+        return self.loss.compute(self.output, targets), self.output
 
     def backward(self, predictions, targets):
         # Convert one-hot encoded labels into discrete values

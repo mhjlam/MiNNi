@@ -18,7 +18,9 @@ relu1 = snn.activation.ReLu()
 dense2 = snn.layer.Dense(64, 3)
 sce_loss = snn.activation.SoftmaxCrossEntropy()
 
-#optimizer = snn.optimizer.Adam(learning_rate=0.05, decay=5e-7) 
+#optimizer = snn.optimizer.Momentum(decay=1e-3, momentum=0.9)
+#optimizer = snn.optimizer.AdaGrad(decay=1e-4)
+#optimizer = snn.optimizer.RMSProp(learning_rate=0.02, decay=1e-5, rho=0.999)
 optimizer = snn.optimizer.Adam(learning_rate=0.05, decay=5e-7)
 
 for epoch in range(10001):

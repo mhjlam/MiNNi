@@ -1,7 +1,7 @@
 import numpy
 
-from . import Softmax
 from .activation import Activation
+from .softmax import Softmax
 from ..loss import CrossEntropy
 
 class SoftmaxCrossEntropy(Activation):

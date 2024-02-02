@@ -8,39 +8,35 @@ import snn.activation
 import snn.data
 import snn.layer
 import snn.loss
+import snn.optimizer
 
-samples, labels = snn.data.generate_spiral(100, 3)
+X, y = snn.data.generate_spiral(samples=100, classes=3)
 
-dense1 = snn.layer.Dense(2, 3)
+dense1 = snn.layer.Dense(2, 64)
 activation1 = snn.activation.ReLu()
 
-dense2 = snn.layer.Dense(3, 3)
+dense2 = snn.layer.Dense(64, 3)
 loss_activation = snn.activation.SoftmaxCrossEntropy()
 
-def forward_pass(samples, labels):
-    dense1_output = dense1.forward(samples)
-    act1_output = activation1.forward(dense1_output)
-    dense2_output = dense2.forward(act1_output)
-    loss = loss_activation.forward(dense2_output, labels)
-    
-    print('\nFORWARD PASS')
-    print(loss_activation.output[:5])
-    print('loss:', loss)
-    print('accuracy:', snn.loss.accuracy(loss_activation.output, labels))
+optimizer = snn.optimizer.Adam(learning_rate=0.05, decay=5e-7)
 
-def backward_pass():
-    loss_activation_dinputs = loss_activation.backward(loss_activation.output, labels)
-    dense2_gradients = dense2.backward(loss_activation_dinputs)
-    activation1_dinputs = activation1.backward(dense2.dinputs)
-    dense1_gradients = dense1.backward(activation1_dinputs)
+for epoch in range(10001):
+    ### Forward pass ###
+    loss = loss_activation.forward(dense2.forward(activation1.forward(dense1.forward(X))), y)
+    accuracy = snn.loss.accuracy(loss_activation.output, y)
     
-    print('\nBACKWARD PASS')
-    print(dense1_gradients.dweights)
-    print(dense1_gradients.dbiases)
-    print()
-    print(dense2_gradients.dweights)
-    print(dense2_gradients.dbiases)
-
-forward_pass(samples, labels)
-backward_pass()
+    if not epoch % 100:
+        print(f'epoch: {epoch:>5}, ' +
+              f'accuracy: {accuracy:.4f}, ' +
+              f'loss: {loss:.4f}, ' +
+              f'learning rate: {optimizer.current_learning_rate:.4f}')
+    
+    ### Backward pass ###
+    dense1.backward(activation1.backward(dense2.backward(loss_activation.backward(loss_activation.output, y))))
+    
+    ### Optimizer ###
+    optimizer.pre_update()
+    optimizer.update_params(dense1)
+    optimizer.update_params(dense2)
+    optimizer.post_update()
 ```

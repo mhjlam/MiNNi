@@ -23,3 +23,4 @@ class Softmax(Activation):
             
             # Compute sample-wise gradient and add to array of sample gradients
             self.dinputs[i] = numpy.dot(jacobian, gradiant_set)
+        return self.dinputs

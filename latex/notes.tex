@@ -1,7 +1,8 @@
 \documentclass[a4paper]{article}
-\usepackage[a4paper, total={6in, 8in}]{geometry}
+\usepackage[a4paper, left=2.5cm,right=2.5cm,top=2.5cm,bottom=2.5cm]{geometry}
 \usepackage{amsmath, amssymb, bm, enumitem, graphicx}
 
+\newcommand{\abs}[1]{\lvert#1\rvert}
 \newcommand{\euler}{\mathrm{e}}
 \newcommand{\matr}[1]{\mathbf{#1}}
 \newcommand{\vect}[1]{\bm{#1}}
@@ -53,10 +54,10 @@ If a neuron no longer affects the model's result on any input and returns 0 on m
 Layer inputs use data batches because the output of a layer should be sample-related and not neuron-related. Samples are passed further through the network, and the next layer will also expect a batch of inputs. 
 
 \begin{itemize}
-    \item $\matr{X}$: matrix of input samples
-    \item $\bm{y}$: target classification labels
-    \item $\vect{\hat{y}}$: predicted classification (the values of the output layer)
-    \item $\bm{Z}$: matrix of outputs of a hidden layer
+    \item $\matr{X}$: matrix of input samples. One input sample is given as $x \in \matr{X}$.
+    \item $\bm{y}$: target classification labels.
+    \item $\vect{\hat{y}}$: predicted classification (the values of the output layer).
+    \item $\matr{\Theta}$: matrix of outputs of a hidden layer. The output of one neuron is $\theta \in \matr{\Theta}$
 \end{itemize}
 
 % SOMETHING ABOUT HOW CLASSIFICATION LABELS CAN BE SPARSE OR DENSE
@@ -77,11 +78,11 @@ The goal of the forward pass is to run the input samples through the neural netw
 A dense layer applies the following linear formula:
 
 \begin{equation*}
-    \matr{Z}_i = \matr{Z}_{i-1} \cdot \matr{W}_i + \bm{b}_i
+    \matr{\Theta}_i = \matr{\Theta}_{i-1} \cdot \matr{W}_i + \bm{b}_i
 \end{equation*}
-where $\matr{Z}_i$ is the output matrix of a layer $i$, $\matr{W}$ is the weight matrix of this layer, and $\vect{b}$ is a vector of biases, one for each neuron in the layer.
+where $\matr{\Theta}_i$ is the output matrix of a layer $i$, $\matr{W}$ is the weight matrix of this layer, and $\vect{b}$ is a vector of biases, one for each neuron in the layer.
 
-Matrix $\matr{Z}_{i-1}$ can be either output from a previous hidden layer, or the input sample matrix $\matr{X}$ in case of the first layer.
+Matrix $\matr{\Theta}_{i-1}$ can be output from a previous hidden layer, or the input sample matrix $\matr{X}$ for the first layer.
 
 \subsection*{Activation}
 After calculating the linear formula above, an activation function is applied to its output to simulate whether a neuron is activated for a certain input. Just like weights and biases, activation functions are essential parts of each neuron of a layer.
@@ -106,7 +107,7 @@ It is less common in modern networks, where it has been largely replaced by the 
 
 \subsubsection*{Rectified Linear Unit (ReLU)}
 
-The rectified function is simple but powerful when using them in two (or more) successive layers because it can then approximate nonlinear functions. While simple, efficient, and nearly linear, it remains nonlinear due to the bend after 0.
+The rectified function is a simple but powerful when using them in two (or more) successive layers because it can then approximate nonlinear functions. While simple, efficient, and nearly linear, it remains nonlinear due to the bend after 0.
 
 \begin{equation*}
     \text{ReLU}(x) = \max(0, x)
@@ -115,7 +116,7 @@ The rectified function is simple but powerful when using them in two (or more) s
 \subsubsection*{Softmax}
 The Softmax activation function is used for multiclass classification problems and is applied to the output layer. It can take in non-normalized, or uncalibrated, inputs and produce a normalized distribution of probabilities for each class that will add up to 1. The predicted class is associated with the output neuron that returned the largest confidence score.
 
-The function takes as input a vector $\vect{z} = (z_1, \ldots, z_K) \in \mathbb{R}$ of $K$ real numbers, and normalizes it into a probability distribution consisting of $K$ probabilities proportional to the exponentials of the input numbers:
+Softmax takes as input a vector $\vect{z} = (z_1, \ldots, z_K) \in \mathbb{R}$ of $K$ real numbers, and normalizes it into a probability distribution consisting of $K$ probabilities proportional to the exponentials of the input numbers:
 
 \begin{equation*}
     \text{Softmax}(\vect{z})_i = \frac{\exp(\vect{z}_i)}{\sum_{k=1}^K \exp(\vect{z}_k)} \text{ for } i = 1, \ldots, K.
@@ -251,7 +252,7 @@ To calculate the gradient we need to use the partial derivative of the full forw
     L_i = -\sum_{j} \vect{y}_{i,j} \log(\vect{\hat{y}}_{i,j})
 \end{equation*}
 
-Where $L_i$ denotes samples loss value, $i$ is the $i$-th sample in a set, $j$ is the label index, $\vect{y}$ are the target values, and $\vect{\hat{y}}$ are the predicted values.
+Where $L_i$ denotes sample loss value, $i$ is the $i$-th sample in a set, $j$ is the label index, $\vect{y}$ are the target values, and $\vect{\hat{y}}$ are the predicted values.
 
 Let's define the gradient equation as the partial derivative of the loss function with respect to each of its inputs and solve it using the chain rule:
 
@@ -269,8 +270,8 @@ The summation can be omitted because the partial derivative is calculated with r
     \frac{\partial L_i}{\partial \vect{\hat{y}}_{i,j}} = -\frac{\vect{y}_{i,j}}{\vect{\hat{y}}_{i,j}}
 \end{equation*}
 
+\pagebreak
 \subsubsection*{Softmax Derivative}
-
 The definition of the partial derivative of the Softmax function is:
 
 \begin{equation*}
@@ -289,7 +290,7 @@ Applying the chain rule and solving with respect to input $\vect{z}_{i,k}$ yield
     &= \frac{\frac{\partial}{\partial \vect{z}_{i,m}} \exp(\vect{z}_{i,j}) \cdot \sum_{k=1}^{K} \exp(\vect{z}_{i,k}) - \exp(\vect{z}_{i,j}) \cdot \frac{\partial}{\partial \vect{z}_{i,m}} \sum_{k=1}^{K} \exp(\vect{z}_{i,k})}{[\sum_{k=1}^{K} \exp(\vect{z}_{i,k})]^2} \\
 \end{alignat*}
 
-Now there are two possibilities for the partial derivative on the left side of the subtraction operation that lead to different results: one where $j=m$ and one wehere $j\not=m$.
+Now there are two possibilities for the partial derivative on the left side of the subtraction operation that lead to different results: one where $j=m$ and one where $j\not=m$.
 
 In the case of $j=m$:
 
@@ -307,6 +308,7 @@ Looking closely, both the left part and right part of the equation are just the 
     \frac{\partial \matr{S}_{i,j}}{\partial \vect{z}_{i,m}} = \matr{S}_{i,j} \cdot (1 - \matr{S}_{i,m}) ~~ \text{ when } j=m
 \end{equation*}
 
+\pagebreak
 In the case of $j\not=m$:
 
 \begin{alignat*}{5}
@@ -344,6 +346,7 @@ By applying the \emph{Kronecker delta function} the equation simplifies even fur
 
 The result of this is a Jacobian matrix; an array of partial derivatives in all of the of both input vectors. This is then done for every output of the Softmax function with respect to each input separately (a batch of samples), and thus the result becomes a list of Jacobian matrices, or a 3D matrix. This result then needs to be condensed to a single partial derivative value by taking each row of the Jacobian matrix and multiplying it with the corresponding value in the loss function's gradient.
 
+\pagebreak
 \subsubsection*{Softmax Cross-Entropy}
 By combining the \emph{Softmax activation} and the \emph{Categorical Cross-Entropy loss} functions, their derivative can be greatly simplified, leading to a significant performance boost. The simplification is possible due to the the inputs of the cross-entropy function being equal to the outputs of the Softmax function, and using the properties of the one-hot encoded vector to reduce a summation to a scalar value.
 
@@ -363,5 +366,270 @@ The chain rule can be applied to calculate the partial derivative of the Categor
 \end{alignat*}
 
 After applying the chain rule to the partial derivatives of cross-entropy loss function $L_i$ and of the Softmax function $\matr{S}_{i,j}$, the whole equation simplifies significantly to the subtraction of the predicted labels $\vect{\hat{y}}$ and the ground-truth labels $\vect{y}$.
+
+\pagebreak
+\section*{Optimizers}
+During backpropagation the calculated gradient points to the current steepest loss ascent, and taking the negative of the gradient vector flips it toward the current steepest descent. The goal of an optimizer is to adjust a model's parameters to approach the \emph{global minimum} of the loss gradient. When there are millions of dimensions (parameters) in a function, gradient descent is the best known way to search for a global minimum.
+
+As long as the loss is not very close to 0 the model stopped learning and it has become stuck in a \emph{local minimum}. However, if a loss of 0 is reached, this is a reason to be suspicious, because it usually means that the model has been overfitted to the training data. Conversely, \emph{generalization} is the ability of the model to correctly predict unseen data, or to approximate the "trend" of the data closely.
+
+An \emph{epoch} is a full cycle of a forward then backward pass and then optimization through all of the training data. A neural network will usually be trained for multiple epochs.
+
+Most optimizers are variants of \emph{Stochastic Gradient Descent} (SGD).
+
+\subsection*{Stochastic Gradient Descent}
+Stochastic Gradient Descent historically refers to an optimizer that fits a single sample at a time, but modern variants is seen as one that assumes a batch of data, whether that batch happens to be a single sample, every sample in a dataset, or some subset of the full dataset at a time.
+
+Stochastic Gradient Descent uses a factor called the \emph{learning rate} that is applied to the gradients before subtracting them from the weight and bias parameters. The learning rate is a so-called \emph{hyper-parameter}, a global parameter that is configured for the optimizer.
+
+\emph{Gradient descent} is the simplest optimization algorithm which computes gradients of loss function with respect to model parameters and updates them by using the following formula:
+
+\begin{equation*}
+    \theta_t = \theta_{t-1} - \eta \, \nabla_\theta
+\end{equation*}
+
+Where $\theta$ is a parameter (weight or bias), $\nabla_\theta$ is the gradient of $\theta$, $\eta$ is the learning rate, and $t$ is the step/iteration/epoch index. 
+
+\subsubsection*{Learning Rate}
+The learning rate $\eta$ is a scalar value that modifies the influence of the gradient descent. By adjusting this parameter correctly, the global minimum can be closely approximated. 
+
+By taking small steps in the direction of the gradient we can ensure that the steepest descent is followed. However, steps that are too small can cause \emph{learning stagnation}, and thus if the learning rate is too small, the optimizer may get stuck in a local minimum. Having a learning rate that is too high will lead to an unstable model where it may not be able to find the global minimum, or further epochs may cause a \emph{gradient explosion}. This is a situation where parameter updates cause the loss and gradient to increase instead of decrease.
+
+Choosing the right hyper-parameters is critical and challenging. It is usually best to start with the optimizer defaults, perform a few steps, and observe the training process after tuning. In most cases it is beneficial start with a higher learning rate and decrease it during training using a \emph{learning rate decay}.
+
+\subsubsection*{Learning Rate Decay}
+One method to add decay is to decrease the learning rate manually or logically in response to the loss across epochs, as when it begins to level out or starts jumping over large deltas. 
+
+Another way is to implement a \emph{decay rate} which steadily decays the learning rate per batch or epoch. A step-wise decay rate is also referred to as \emph{1/t decaying} or \emph{exponential decaying}. 
+
+\pagebreak
+The learning rate decay is defined as the reciprocal of the step count fraction:
+
+\begin{equation*}
+    \eta = \eta_0 \, \frac{1}{1 + \beta \, t}
+\end{equation*}
+
+Where $\eta$ is the learning rate for the current step $t$, $\eta_0$ is the initial learning rate, and $\beta$ is the decay rate. The formula will make the learning rate smaller with time, because the denominator will get higher with each step.
+
+If the learning rate decays too quickly and becomes too small, the model gets trapped in a local minimum. Therefore, the decay is usually a small number like $0.001$ or $0.00001$.
+
+\subsubsection*{Stochastic Gradient Descent with Momentum}
+Adding \emph{momentum} to an optimizer adds "inertia" to the steps taken towards the global minimum and can mitigate learning stagnation and gradient explosion. Momentum retains the direction of the gradient from a previous step and uses it to influence the next update's direction.
+
+The momentum $\gamma$ represents the fraction of the previous parameter update to retain, and subtracting the actual gradient, multiplied by the learning rate, from it:
+
+\begin{align*}
+    v_t &= \gamma \, v_{t-1} + \eta \, \nabla\theta_t \\
+    \theta_t &= \theta_{t-1} - v_t
+\end{align*}
+
+Where $\theta_t$ are the weights for the current step $t$, $\gamma \in \{0,1\}$ is the momentum, $\theta_{t-1}$ is are the weights of the previous step, $\eta$ is the learning rate for step $t$, and $\nabla\theta_t$ is the gradient, or derivative of loss with respect to weight. In practice, this equation is similarly applied to determine the adjusted biases.
+
+The Momentum optimizer is usually one of two main initial choices, the other being \emph{Adam}. 
+
+\subsubsection*{AdaGrad}
+\emph{Adaptive Gradient} or AdaGrad uses an adaptive per-parameter learning rate rather than a global one. 
+
+The concept is that some parameters (weights/biases) matter more to the loss than others, and thus some parameters should be updated more significantly than others in each epoch. In AdaGrad the parameters will have a different learning rate based on whether the features are \emph{dense} or \emph{sparse}. That is, if gradients corresponding to a certain parameter are large, then the respective learning rate will be small, and conversely, for smaller gradients the learning rate will be bigger. AdaGrad can deal with vanishing and exploding gradient problems this way.
+
+The \emph{sum of squared gradients} captures how much a parameter has been updated already. Instead of keeping track of the sum of gradients like momentum, AdaGrad keeps track of the \emph{sum of squared gradients} in a \emph{cache} to adapt the gradient in a certain direction.
+
+During the update step, AdaGrad scales the learning rate by dividing it by the square root of the accumulated gradients:
+
+\begin{align*}
+    v_t &= v_{t-1} + {\nabla\theta_t}^2 \\
+    \theta_t &= \theta_{t-1} - \frac{\eta}{\sqrt{v_t} + \epsilon} \nabla\theta_t
+    %\theta_t &= \theta_{t-1} - \frac{\eta}{\sqrt{\sum_{\tau=1}^{t}({\nabla\theta_\tau}^{2}}) + \epsilon} \nabla \theta_t
+\end{align*}
+
+Where $v_t$ is the sum of squared gradients at step $t$, $\theta_t$ are the weights at step $t$, $\nabla\theta_t$ are the gradients from all previous steps, $\eta$ is the initial learning rate, and $\epsilon$ is a small positive term to prevent possible division by zero.
+
+The advantage of AdaGrad is that there is no need to manually adjust the learning rate during training, but the learning rate constantly decays over time and therefore converges slowly during later steps.
+
+\subsubsection*{RMSProp}
+RMSProp stands for \emph{Root Mean Square Propagation}, another adaptive optimizer that calculates a learning rate per parameter. It was designed as an improvement over AdaGrad's issue of learning rate decay and its formula is similar:
+
+\begin{align*}
+    v_t &= \rho \, v_{t-1} + (1-\rho) {\nabla\theta_t}^2 \\
+    \theta_t &= \theta_{t-1} - \frac{\eta}{\sqrt{v_t} + \epsilon} \, \nabla\theta_t
+\end{align*}
+
+Where the new hyper-parameter $\rho$ is the cache memory decay rate. The value of this parameter can be set much lower than a standard learning rate because RMSProp carries over a lot of momentum of gradient and small gradient updates are enough to keep it going. Therefore, the recommended default is $\rho = 0.001$.
+
+%v_t = rho * v_t + (1-rho) * dw**2
+%w = w - (lr * dw / (sqrt(v_t) + epsilon))
+
+Instead of storing a cumulated sum of squared gradients, the \emph{exponentially moving average} $v_t$ is calculated for squared gradients ${\nabla\theta}^2$. RMSProp converges faster than AdaGrad because the exponentially moving average puts more emphasis on recent gradient values rather than equally distributing importance between all gradients. Additionally, the learning rate does not always decay with the increase of iterations. 
+
+\subsubsection*{Adam}
+Adam is short for \emph{Adaptive Moment Estimation} and combines RMSProp with Momentum. In addition to storing an exponentially decaying average of past squared gradients $v_t$ like RMSprop, it also keeps an exponentially decaying average of past gradients $m_t$, similar to momentum:
+
+\begin{alignat*}{2}
+    v_t = \beta_1 v_{t-1} &+ (1 - \beta_1) \nabla\theta_t \\
+    s_t = \beta_2 s_{t-1} &+ (1 - \beta_2) {\nabla\theta_t}^2
+\end{alignat*}
+
+Where $\beta_1$ and $\beta_2$ are the decay rates that are recommended to be set at $\beta_1 = 0.9$ and $\beta_2 = 0.999$. Moving averages $v_t$ and $s_t$ are estimates of the \emph{first moment} (the mean) and the \emph{second moment} (the uncentered variance) of the gradients respectively, hence the name of this optimizer.
+
+Initially, and the decay rates are small (close to $1$), the moments are biased towards zero. Those biases can be mitigated by computing the \emph{bias-corrected first and second moment estimates}:
+
+\begin{align*}
+    \hat{v}_t = \frac{v_t}{1-\beta_1^t} \\
+    \hat{s}_t = \frac{s_t}{1-\beta_2^t}
+\end{align*}
+
+And then use these estimates to update the parameters according to Adam's update rule:
+
+\begin{align*}
+    \theta_t = \theta_{t-1} - \frac{\eta}{\sqrt{\hat{s}_t} + \epsilon} \, \hat{v}_t
+\end{align*}
+
+%v_t = (beta_1*v_t + (1-beta_1)*dw) / (1-beta_1^t)
+%s_t = (beta_2*s_t + (1-beta_2)*dw^2) / (1-beta_2^t)
+%w = w - (lr * v_t / (sqrt(s_t) + epsilon))
+
+\subsubsection*{Hyper-parameters}
+
+In general it is usually a good idea to try the Adam optimizer, but sometimes simple SGD or Momentum performs better than Adam. A general starting learning rate for SGD is $1.0$, with a decay down to $0.1$. For Adam, a good starting learning rate is $0.001$, decaying down to $0.0001$. Keep in mind that different problems may require different values, but these are decent starting values.
+
+\pagebreak
+\section*{Validation}
+The expectation of a well-trained neural network is that it can learn a representation of a clear set of rules and use this representation to predict classes of additional generated data. 
+
+Unfortunately, the complexity of neural networks is both a strength and a weakness. Having a massive amount of tunable parameters means that they are exceptional at closely fitting to the training data. An overfit model is exceptional at predicting the data that it has already seen, but does significantly worse on new, similar data.
+
+\subsection*{Avoiding Overfitting}
+To avoid overfitting, it is essential to have both \emph{training data} and \emph{testing data} as separate sets. This way, some data is reserved and withheld from the training data to test the model's effectiveness. 
+
+Overfitting can be recognized when testing data results begin to significantly diverge in trend from training data. Having a loss difference of 10\% or more between the training and testing phases is a common sign of serious overfitting. In general, the goal is to have the testing loss identical to the training loss, even if that means higher loss and lower accuracy on the training data. Similar performance on both datasets means that model has generalized.
+
+Divergence of the training and testing data can often take a long time. One general rule to follow when selecting initial model hyperparameters is to find the smallest model possible that still learns. With fewer neurons it's easier for a neural network to generalize compared to memorizing the data. The process of trying different model settings is called \emph{hyperparameter tuning}.
+
+Other ways to avoid overfitting are \emph{regularization} or using a so-called \emph{dropout layer}. 
+
+\subsection*{Validating}
+Hyperparameter tuning can be performed using another dataset called \emph{validation data}. When the training data is large, a part of it can separated and used for validation purposes.
+
+If the training data is sparse, there are two options. One is to temporarily split the training data into a smaller training dataset and a validation dataset for hyperparameter tuning. Then train the model on all of the training data when the hyperparameters are finalized.
+
+The second is \emph{$k$-fold cross-validation}: split the training dataset into $k$ amount of parts and train the model on all except one of those parts and validate it on the remaining part. Then repeat this process for all of the parts, choosing a different one used for validation each time.
+
+When validating it is common to loop over different hyperparameter sets while running the training phase multiple times, applying different settings each run, and reviewing the results to choose the best set of hyperparameters.
+
+\subsection*{Preprocessing}
+\emph{Preprocessing} refers to the technique of preparing the training dataset (or samples) for use in the model. This includes but is not limited to: standardization, scaling, variance scaling, mean removal, non-linear transformations, and scaling to outliers. Neural networks usually perform best on data consisting of numbers in a range of $[0,1]$ or $[-1,1]$. For example for pixel values in range $[0,255]$ they would be scaled to either of these ranges.
+
+There are two main reasons that these ranges are preferred:
+
+\begin{itemize}
+    \item Centering data on zero helps with model training because it will attenuate weight biasing in some direction. This is because many activation functions actually behave quite well within this described range. 
+    \item In multiplication operations with numbers in the $[-1,1]$ range the result becomes a small value, a fraction. Big numbers on the other hand may cause instability or numerical overflow.
+\end{itemize}
+
+Not all values have to strictly be only in the $[-1,1]$ range because the model will perform well with data slightly outside of this range or with a few major outliers.
+
+All datasets should be transformed in the same way, be it the training, validation, or testing data. This transformer should be saved along with the model and datasets and also applied during \emph{prediction}.
+
+\emph{Data augmentation} can be used in cases where the number of training samples is low. The idea is to copy the existing samples, make a slight modification to it that still retains all the required features that the model should be able to handle, and use it as an additional sample. An example would be a photo that can be safely rotated, cropped, or scaled.
+
+The amount of required samples to train a model may vary greatly, and depends on the data complexity and model size. Usually a few thousand (or tens of thousands) per class or feature will be necessary.
+
+\section{Regularization}
+\emph{Regularization methods} are used to reduce generalization error. 
+
+\subsection*{L1 and L2 Regularization}
+In \emph{L1} and \emph{L2} regularization a \emph{penalty} value is calculated and added to the loss to penalize the model for large weights and biases. Large weights might indicate that a neuron is attempting to memorize a feature but in general it is better to have many neurons contributing to a model's output.
+
+L1 regularization's penalty is the sum of all absolute values for the weights and biases:
+\begin{equation*}
+    L_{1_\theta} = \lambda\sum_m\abs{\theta_m}
+\end{equation*}
+
+Where $\lambda$ is a value representing the impact that this regularization carries and is usually a small value like $0.0005$, and parameter $m$ is an arbitrary iterator over all of the parameters (weights or biases) in a model.
+
+L2 regularization's penalty is the sum of the squared weights and biases:
+\begin{equation*}
+    L_{2_\theta} = \lambda\sum_m\theta_m^2
+\end{equation*}
+
+L1 defines a linear penalty because the loss returned by this function is directly proportional to parameter values, whereas L2 defines a non-linear approach that penalizes larger parameters more than smaller ones. Because L1 penalizes small weights more than L2, it is rarely used alone and usually combined with L2, or not used at all. Note that regularization functions of this type drive the sum of parameters towards 0, which can help in cases of exploding gradients.
+
+The overall loss is now defined as:
+\begin{equation*}
+    Q_i = L_i + L_{1_\theta} + L_{2_\theta}
+\end{equation*}
+
+\subsubsection*{Backward pass}
+For the backward pass we need to know the derivatives of $L_{2_\theta}$ and $L_{1_\theta}$.
+
+\begin{alignat*}{3}
+    \frac{\partial L_{2_\theta}}{\partial\theta_m} &= \frac{\partial}{\partial\theta_m}\left[\lambda\sum_m\theta_m^2\right] \\
+    &= \lambda\frac{\partial}{\partial\theta_m}\,\theta_m^2 \\
+    &= 2\lambda\theta_m
+\end{alignat*}
+
+For $L_{1_\theta}$ the derivative of the absolute value piecewise function must be computed, which effetively multiplies a value by $-1$ if it is less than $0$, and by $1$ otherwise:
+
+\begin{alignat*}{3}
+    \frac{\partial L_{1_\theta}}{\partial\theta_m} &= \frac{\partial}{\partial\theta_m}\lambda\sum_m\abs{\theta_m} \\
+    &= \lambda\frac{\partial}{\partial\theta_m}\abs{\theta_m} \\
+    &= \lambda
+    \begin{cases}
+\hphantom{-}1 & \theta_m > 0 \\
+          - 1 & \theta_m < 0 \\
+      \end{cases}       
+\end{alignat*}
+
+Regularization terms are usually only added to the hidden layers and not the output layer. In general, regularization allows to create much larger models (with many more neurons) without fear of overfitting.
+
+\subsection*{Dropout}
+Another option for regularization is adding a \emph{Dropout Layer}. Dropout works by randomly disabling neurons at a given rate during every forward pass, forcing the network to learn how to make accurate predictions with only a random part of neurons remaining. It forces the model to use more neurons for the same purpose, resulting in a higher chance of learning the underlying function, and becoming much less dependent on any specific arrangement of neurons. 
+
+Dropout mitigates \emph{co-adoption} and overfitting, and becomes more robust against \emph{noise} and other perturbations in the training data. Co-adoption happens when neurons depend on the output values of other neurons and do not learn the underlying function by themselves.
+
+A dropout layer "turns off" neurons with a filter with numbers drawn from a \emph{Bernoulli distribution}. This is a binary probability distribution which gives a value of $1$ with a probability of $p$ and a value of $0$ with a probability of $q$. A random draw $r_i$ from this distribution is given as:
+
+\begin{alignat*}{3}
+    r_i \sim \text{Bernoulli}(p) &\text{ where } \\
+    P(r_i=1) &= p \\
+    P(r_i=0) &= q = 1 - P(r_i=1)
+\end{alignat*}
+
+Where $P(r_i=x)$ represents the probability that $r_i$ equals $x$.
+
+The hyperparameter for a dropout layer is the \emph{dropout rate} $q$; the value in range $\{0..1\}$ for the percentage of neurons to disable in a given layer. A Bernoulli distribution is a special case of a Binomial probability distribution $Pr(k,n,p)$ with $n=1$, and is given as:
+
+\begin{equation*}
+    Pr(k,n,p) = \binom{n}{k} \, p^k \, (1-p)^{n-k}
+\end{equation*}
+
+Where $n$ is the number of trials (or experiments), $k$ is the number of successes, and $p$ the success probability for each trial. The output of a layer will be multiplied by the chosen neurons according to the probability distribution, where those that have not been selected are set to zero:
+
+\begin{equation*}
+    \theta = \theta \, \frac{Pr(1, 1-p, \|\theta\|)}{(1-p)}
+\end{equation*}
+
+Where $\theta$ are the output parameters of a layer, and $\|\theta\|$ is the size of the this array. The division by $(1-p)$ scales the data after a dropout, to mimic the mean of the sum when all of the neurons output their values.
+
+\subsubsection*{Backward Pass}
+For the backward pass we need the partial derivative of the dropoout operations. When the value of $r_i$ equals 1, then its function and derivative become the neuron's output $\theta$, compensated for the loss value by $1-p$, where $p$ is the dropout rate:
+
+\begin{equation*}
+    \frac{\partial}{\partial\theta}\left[\frac{z}{1-p}\right] = \frac{1}{1-p} \cdot \frac{\partial}{\partial\theta}\theta = \frac{1}{1-p}
+\end{equation*}
+
+And when $r_i = 0$ the dropout filter returns $0$, and thus the derivative is also $0$. Both cases combined yields:
+
+\begin{equation*}
+    Dr_i = \begin{cases}
+        \frac{\theta_i}{1-p} & r_i = 1 \\
+        0 & r_i = 0
+    \end{cases} \rightarrow \frac{\partial}{\partial\theta_i}Dr_i = \begin{cases}
+        \frac{1}{1-p} & r_i = 1 \\
+        0 & r_i = 0
+    \end{cases} = \frac{r_i}{1-p}
+\end{equation*}
+
+Where $Dr_i$ is the dropout for given input at index $i$.
 
 \end{document}

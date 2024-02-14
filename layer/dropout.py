@@ -3,8 +3,8 @@ import numpy
 from .layer import Layer
 
 class Dropout(Layer):
-    def __init__(self, dropout_rate):
-        self.rate = dropout_rate
+    def __init__(self, rate):
+        self.rate = 1 - rate
 
     def forward(self, inputs):
         self.inputs = inputs

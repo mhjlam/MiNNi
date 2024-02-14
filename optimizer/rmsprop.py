@@ -11,9 +11,8 @@ class RMSProp(Optimizer): # Root Mean Square Propagation
         self.rho = rho
         
     def pre_update(self):
-        if self.decay:
-            self.current_learning_rate = \
-                self.learning_rate * (1.0 / (1.0 + self.decay * self.iterations))
+        if self.decay: self.current_learning_rate = \
+            self.learning_rate * (1.0 / (1.0 + self.decay * self.iterations))
     
     def update_params(self, layer):
         if not hasattr(layer, 'weight_cache'):

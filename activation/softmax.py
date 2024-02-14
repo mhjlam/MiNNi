@@ -14,13 +14,13 @@ class Softmax(Activation):
         self.dinputs = numpy.empty_like(dvalues)
         
         # Iterate sample-wise over pairs of the outputs and gradients
-        for i, (output, gradiant_set) in enumerate(zip(self.output, dvalues)):
+        for index, (single_output, dvalues_set) in enumerate(zip(self.output, dvalues)):
             # Flatten output array
-            output = output.reshape(-1, 1)
+            single_output = single_output.reshape(-1, 1)
             
             # Compute Jacobian of the output (matrix of all partial derivatives)
-            jacobian = numpy.diagflat(output) - numpy.dot(output, output.T)
+            jacobian = numpy.diagflat(single_output) - numpy.dot(single_output, single_output.T)
             
             # Compute sample-wise gradient and add to array of sample gradients
-            self.dinputs[i] = numpy.dot(jacobian, gradiant_set)
+            self.dinputs[index] = numpy.dot(jacobian, dvalues_set)
         return self.dinputs

@@ -3,22 +3,32 @@ from abc import ABC, abstractmethod
 
 class Loss(ABC):
     def compute(self, predictions, targets):
-        return numpy.mean(self.forward(predictions, targets))
+        sample_losses = self.forward(predictions, targets)
+        data_loss = numpy.mean(sample_losses)
+        return data_loss
 
     def regularization_loss(self, layer):
         regularization_loss = 0
-        
-        if layer.regularizer.l1w > 0:
-            regularization_loss += layer.regularizer.l1w * numpy.sum(numpy.abs(layer.weights))
-        
-        if layer.regularizer.l2w > 0:
-            regularization_loss += layer.regularizer.l2w * numpy.sum(layer.weights * layer.weights)
-        
-        if layer.regularizer.l1b > 0:
-            regularization_loss += layer.regularizer.l1b * numpy.sum(numpy.abs(layer.biases))
-        
-        if layer.regularizer.l2b > 0:
-            regularization_loss += layer.regularizer.l2b * numpy.sum(layer.biases * layer.biases)
+
+        # L1 regularization - weights
+        if layer.weight_regularizer_l1 > 0:
+            regularization_loss += layer.weight_regularizer_l1 * \
+                numpy.sum(numpy.abs(layer.weights))
+
+        # L2 regularization - weights
+        if layer.weight_regularizer_l2 > 0:
+            regularization_loss += layer.weight_regularizer_l2 * \
+                numpy.sum(layer.weights * layer.weights)
+
+        # L1 regularization - biases
+        if layer.bias_regularizer_l1 > 0:
+            regularization_loss += layer.bias_regularizer_l1 * \
+                numpy.sum(numpy.abs(layer.biases))
+
+        # L2 regularization - biases
+        if layer.bias_regularizer_l2 > 0:
+            regularization_loss += layer.bias_regularizer_l2 * \
+                numpy.sum(layer.biases*layer.biases)
 
         return regularization_loss
         

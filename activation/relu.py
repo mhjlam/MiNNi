@@ -1,7 +1,7 @@
 import numpy
 from .activation import Activation
 
-class ReLu(Activation):
+class ReLU(Activation):
     def forward(self, inputs):
         self.inputs = inputs
         self.output = numpy.maximum(0, inputs)

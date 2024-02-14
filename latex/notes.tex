@@ -2,6 +2,8 @@
 \usepackage[a4paper, left=2.5cm,right=2.5cm,top=2.5cm,bottom=2.5cm]{geometry}
 \usepackage{amsmath, amssymb, bm, enumitem, graphicx}
 
+\allowdisplaybreaks
+
 \newcommand{\abs}[1]{\lvert#1\rvert}
 \newcommand{\euler}{\mathrm{e}}
 \newcommand{\matr}[1]{\mathbf{#1}}
@@ -13,6 +15,8 @@
 
 \newcommand{\yij}{\vect{y}_{i,j}}
 \newcommand{\yhatij}{\vect{\hat{y}}_{i,j}}
+
+\newcommand*\diff{\mathop{}\!\mathrm{d}}
 
 \DeclareEmphSequence{\bfseries\itshape}
 \setlength\parindent{0pt}
@@ -89,24 +93,9 @@ After calculating the linear formula above, an activation function is applied to
 
 A neural network typically has two different activation functions; one used in the hidden layers, and a different one in the output layer.
 
-If an activation function is nonlinear, it will allow neural networks with two or more hidden layers to map nonlinear functions. Some examples of nonlinear activation functions are:
-\begin{itemize}
-    \item Sigmoid
-    \item Rectified Linear Unit (ReLU)
-    \item Softmax
-\end{itemize}
+If an activation function is nonlinear, it will allow neural networks with two or more hidden layers to map nonlinear functions. Two of the most commonly used activation functions, \emph{Rectified Linear Unit} (ReLU) and \emph{Softmax} are such functions.
 
-\subsubsection*{Sigmoid}
-The Sigmoid or logistic function is one of the original granular activation functions used in neural networks:
-
-\begin{equation*}
-    \text{Sigmoid}(x) = \frac{1}{1 + \euler^{-x}}
-\end{equation*}
-
-It is less common in modern networks, where it has been largely replaced by the Rectified Linear activation function.
-
-\subsubsection*{Rectified Linear Unit (ReLU)}
-
+\subsubsection*{Rectified Linear Unit}
 The rectified function is a simple but powerful when using them in two (or more) successive layers because it can then approximate nonlinear functions. While simple, efficient, and nearly linear, it remains nonlinear due to the bend after 0.
 
 \begin{equation*}
@@ -116,10 +105,10 @@ The rectified function is a simple but powerful when using them in two (or more)
 \subsubsection*{Softmax}
 The Softmax activation function is used for multiclass classification problems and is applied to the output layer. It can take in non-normalized, or uncalibrated, inputs and produce a normalized distribution of probabilities for each class that will add up to 1. The predicted class is associated with the output neuron that returned the largest confidence score.
 
-Softmax takes as input a vector $\vect{z} = (z_1, \ldots, z_K) \in \mathbb{R}$ of $K$ real numbers, and normalizes it into a probability distribution consisting of $K$ probabilities proportional to the exponentials of the input numbers:
+Softmax takes as input a vector $\theta = (z_1, \ldots, z_K) \in \mathbb{R}$ of $K$ real numbers, and normalizes it into a probability distribution consisting of $K$ probabilities proportional to the exponentials of the input numbers:
 
 \begin{equation*}
-    \text{Softmax}(\vect{z})_i = \frac{\exp(\vect{z}_i)}{\sum_{k=1}^K \exp(\vect{z}_k)} \text{ for } i = 1, \ldots, K.
+    \text{Softmax}(\theta)_i = \frac{\euler^{\theta_i}}{\sum_{k=1}^K \euler^{\theta_k}} \text{ for } i = 1, \ldots, K.
 \end{equation*}
 
 Exponentiation leads to non-negative values for each of the inputs. Due to the monotonic nature of the exponential function, higher input values also give higher outputs, so the predicted class will not change after applying exponentiation. Converting these numbers to a probability distribution that describe a vector of confidences is done via normalization in the denominator.
@@ -160,11 +149,16 @@ While loss is a useful metric for optimizing a model, accuracy describes how oft
 confidence is the correct class in terms of a fraction. To compute the accuracy, the $\text{argmax}$ values from the Softmax outputs $\vect{\hat{y}}$ are compared to the target classification $\vect{y}$:
 
 \begin{equation*}
-    \text{Accuracy}(\vect{\hat{y}},\vect{y}) = \frac{1}{\|\vect{\hat{y}}\|} \sum_{i=1}^{\|\vect{\hat{y}}\|}(1 \text{ if } \argmax(\vect{\hat{y}_i}) = \vect{y}_i)
+    \text{Accuracy}(\vect{\hat{y}},\vect{y}) = \frac{1}{\|\vect{\hat{y}}\|} \sum_{i=1}^{\|\vect{\hat{y}}\|} \left( \begin{cases}
+                1 & \argmax(\vect{\hat{y}_i}) = \vect{y}_i \\
+                0 & \argmax(\vect{\hat{y}_i}) \not= \vect{y}_i
+            \end{cases}
+            \right)
 \end{equation*}
 
 In other words, it is an arithmetic mean of all the predictions $\vect{\hat{y}}_i$ that correspond to the correct classification $\vect{y}_i$ (in which the result is 1).
 
+\pagebreak
 \section*{Backpropagation}
 Calculating the partial derivatives of all the functions from the loss function back through all the
 layers in the neural network is called backpropagation. In this backwards pass, \emph{gradient descent} is performed by calculating derivatives of single-parameter functions and gradients of multivariate functions. The end goal is to reduce the loss metric as much as possible by optimizing the model.
@@ -270,24 +264,23 @@ The summation can be omitted because the partial derivative is calculated with r
     \frac{\partial L_i}{\partial \vect{\hat{y}}_{i,j}} = -\frac{\vect{y}_{i,j}}{\vect{\hat{y}}_{i,j}}
 \end{equation*}
 
-\pagebreak
 \subsubsection*{Softmax Derivative}
 The definition of the partial derivative of the Softmax function is:
 
 \begin{equation*}
-    \matr{S}_{i,j} = \frac{\exp(\vect{z}_{i,j})}{\sum_{k=1}^K \exp(\vect{z}_{i,k})} ~~ \rightarrow ~~ \frac{\partial \matr{S}_{i,j}}{\partial \vect{z}_{i,m}} = \frac{\partial \frac{\exp(\vect{z}_{i,j})}{\sum_{k=1}^{K} \exp(\vect{z}_{i,k})}}{\partial \vect{z}_{i,m}}
+    \matr{S}_{i,j} = \frac{\euler^{\theta_{i,j}}}{\sum_{k=1}^K \euler^{\theta_{i,k}}} ~~ \rightarrow ~~ \frac{\partial \matr{S}_{i,j}}{\partial \theta_{i,m}} = \frac{\partial \frac{\euler^{\theta_{i,j}}}{\sum_{k=1}^{K} \euler^{\theta_{i,k}}}}{\partial \theta_{i,m}}
 \end{equation*}
 
-Where $\matr{S}_{i,j}$ denotes $j$-th Softmax's output of the $i$-th sample, $\vect{z}$ is the input array which is a list of output vectors from the previous layer, $\vect{z}_{i,j}$ is the $j$-th Softmax's input of the $i$-th sample, $K$ is the number of classifications, and $\vect{z}_{i,m}$ is the $m$-th Softmax's input of the $i$-th sample.
+Where $\matr{S}_{i,j}$ denotes $j$-th Softmax's output of the $i$-th sample, $\theta$ is the input array which is a list of output vectors from the previous layer, $\theta_{i,j}$ is the $j$-th Softmax's input of the $i$-th sample, $K$ is the number of classifications, and $\theta_{i,m}$ is the $m$-th Softmax's input of the $i$-th sample.
 
 The Softmax function equals the exponentiated input divided by the sum of all exponentiated inputs, so we need to exponentiate all of the values first and then divide each of them by the sum of all of them to perform the normalization. Because each input of the Softmax impacts the each of the outputs, each partial derivative of each output with respect to each input has to be calculated. 
 
-Applying the chain rule and solving with respect to input $\vect{z}_{i,k}$ yields:
+Applying the chain rule and solving with respect to input $\theta_{i,k}$ yields:
 
 \begin{alignat*}{3}
-    \frac{\partial \matr{S}_{i,j}}{\partial \vect{z}_{i,m}} &= \frac{\partial \frac{\exp(\vect{z}_{i,j})}{\sum_{k=1}^{K} \exp(\vect{z}_{i,k})}}{\partial \vect{z}_{i,m}} \\
-    &= \frac{\frac{\partial}{\partial \vect{z}_{i,m}} \exp(\vect{z}_{i,j}) \cdot \sum_{k=1}^{K} \exp(\vect{z}_{i,k}) - \exp(\vect{z}_{i,j}) \cdot \frac{\partial}{\partial \vect{z}_{i,m}} \sum_{k=1}^{K} \exp(\vect{z}_{i,k})}{[\sum_{k=1}^{K} \exp(\vect{z}_{i,k})]^2} \\
-    &= \frac{\frac{\partial}{\partial \vect{z}_{i,m}} \exp(\vect{z}_{i,j}) \cdot \sum_{k=1}^{K} \exp(\vect{z}_{i,k}) - \exp(\vect{z}_{i,j}) \cdot \frac{\partial}{\partial \vect{z}_{i,m}} \sum_{k=1}^{K} \exp(\vect{z}_{i,k})}{[\sum_{k=1}^{K} \exp(\vect{z}_{i,k})]^2} \\
+    \frac{\partial \matr{S}_{i,j}}{\partial \theta_{i,m}} &= \frac{\partial \frac{\euler^{\theta_{i,j}}}{\sum_{k=1}^{K} \euler^{\theta_{i,k}}}}{\partial \theta_{i,m}} \\
+    &= \frac{\frac{\partial}{\partial \theta_{i,m}} \euler^{\theta_{i,j}} \cdot \sum_{k=1}^{K} \euler^{\theta_{i,k}} - \euler^{\theta_{i,j}} \cdot \frac{\partial}{\partial \theta_{i,m}} \sum_{k=1}^{K} \euler^{\theta_{i,k}}}{[\sum_{k=1}^{K} \euler^{\theta_{i,k}}]^2} \\
+    &= \frac{\frac{\partial}{\partial \theta_{i,m}} \euler^{\theta_{i,j}} \cdot \sum_{k=1}^{K} \euler^{\theta_{i,k}} - \euler^{\theta_{i,j}} \cdot \frac{\partial}{\partial \theta_{i,m}} \sum_{k=1}^{K} \euler^{\theta_{i,k}}}{[\sum_{k=1}^{K} \euler^{\theta_{i,k}}]^2} \\
 \end{alignat*}
 
 Now there are two possibilities for the partial derivative on the left side of the subtraction operation that lead to different results: one where $j=m$ and one where $j\not=m$.
@@ -295,39 +288,38 @@ Now there are two possibilities for the partial derivative on the left side of t
 In the case of $j=m$:
 
 \begin{alignat*}{5}
-    \frac{\partial \matr{S}_{i,j}}{\partial \vect{z}_{i,m}} &= 
-    \frac{\exp(\vect{z}_{i,j}) \cdot \sum_{k=1}^{K} \exp(\vect{z}_{i,k}) - \exp(\vect{z}_{i,j}) \cdot \exp(\vect{z}_{i,m})}{[\sum_{k=1}^{K} \exp(\vect{z}_{i,k})]^2} \\
-    &= \frac{\exp(\vect{z}_{i,j}) \cdot (\sum_{k=1}^{K} \exp(\vect{z}_{i,k}) - \exp(\vect{z}_{i,m}))}{\sum_{k=1}^{K} \exp(\vect{z}_{i,k}) \cdot \sum_{k=1}^{K} \exp(\vect{z}_{i,k})} \\
-    &= \frac{\exp(\vect{z}_{i,j})}{\sum_{k=1}^{K} \exp(\vect{z}_{i,k})} \cdot \frac{\sum_{k=1}^{K} \exp(\vect{z}_{i,k}) - \exp(\vect{z}_{i,m})}{\sum_{k=1}^{K} \exp(\vect{z}_{i,k})} \\
-    &= \frac{\exp(\vect{z}_{i,j})}{\sum_{k=1}^{K} \exp(\vect{z}_{i,k})} \cdot \frac{\sum_{k=1}^{K} \exp(\vect{z}_{i,k})}{\sum_{k=1}^{K} \exp(\vect{z}_{i,k})} - \frac{\exp(\vect{z}_{i,m})}{\sum_{k=1}^{K} \exp(\vect{z}_{i,k})}
+    \frac{\partial \matr{S}_{i,j}}{\partial \theta_{i,m}} &= 
+    \frac{\euler^{\theta_{i,j}} \cdot \sum_{k=1}^{K} \euler^{\theta_{i,k}} - \euler^{\theta_{i,j}} \cdot \euler^{\theta_{i,m}}}{[\sum_{k=1}^{K} \euler^{\theta_{i,k}}]^2} \\
+    &= \frac{\euler^{\theta_{i,j}} \cdot (\sum_{k=1}^{K} \euler^{\theta_{i,k}} - \euler^{\theta_{i,m}})}{\sum_{k=1}^{K} \euler^{\theta_{i,k}} \cdot \sum_{k=1}^{K} \euler^{\theta_{i,k}}} \\
+    &= \frac{\euler^{\theta_{i,j}}}{\sum_{k=1}^{K} \euler^{\theta_{i,k}}} \cdot \frac{\sum_{k=1}^{K} \euler^{\theta_{i,k}} - \euler^{\theta_{i,m}}}{\sum_{k=1}^{K} \euler^{\theta_{i,k}}} \\
+    &= \frac{\euler^{\theta_{i,j}}}{\sum_{k=1}^{K} \euler^{\theta_{i,k}}} \cdot \frac{\sum_{k=1}^{K} \euler^{\theta_{i,k}}}{\sum_{k=1}^{K} \euler^{\theta_{i,k}}} - \frac{\euler^{\theta_{i,m}}}{\sum_{k=1}^{K} \euler^{\theta_{i,k}}}
 \end{alignat*}
 
 Looking closely, both the left part and right part of the equation are just the definitions of the Softmax function itself:
 
 \begin{equation*}
-    \frac{\partial \matr{S}_{i,j}}{\partial \vect{z}_{i,m}} = \matr{S}_{i,j} \cdot (1 - \matr{S}_{i,m}) ~~ \text{ when } j=m
+    \frac{\partial \matr{S}_{i,j}}{\partial \theta_{i,m}} = \matr{S}_{i,j} \cdot (1 - \matr{S}_{i,m}) ~~ \text{ when } j=m
 \end{equation*}
 
-\pagebreak
 In the case of $j\not=m$:
 
 \begin{alignat*}{5}
-    \frac{\partial \matr{S}_{i,j}}{\partial \vect{z}_{i,m}} &= \frac{\frac{\partial}{\partial \vect{z}_{i,m}} \exp(\vect{z}_{i,j}) \cdot \sum_{k=1}^{K} \exp(\vect{z}_{i,k}) - \exp(\vect{z}_{i,j}) \cdot \frac{\partial}{\partial \vect{z}_{i,m}} \sum_{k=1}^{K} \exp(\vect{z}_{i,k})}{[\sum_{k=1}^{K} \exp(\vect{z}_{i,k})]^2} \\
-    &= \frac{0 \cdot \sum_{k=1}^{K}\exp(\vect{z}_{i,k}) - \exp({z}_{i,j}) \cdot \exp(\vect{z}_{i,m})}{[\sum_{k=1}^{K} \exp(\vect{z}_{i,k})]^2} \\
-    &= \frac{- \exp({z}_{i,j}) \cdot \exp(\vect{z}_{i,m})}{\sum_{k=1}^{K} \exp(\vect{z}_{i,k}) \cdot \sum_{k=1}^{K} \exp(\vect{z}_{i,k})} \\
-    &= -\frac{\exp(\vect{z}_{i,j})}{\sum_{k=1}^{K} \exp(\vect{z}_{i,k})} \cdot \frac{\exp(\vect{z}_{i,m})}{\sum_{k=1}^{K} \exp(\vect{z}_{i,k})}
+    \frac{\partial \matr{S}_{i,j}}{\partial \theta_{i,m}} &= \frac{\frac{\partial}{\partial \theta_{i,m}} \euler^{\theta_{i,j}} \cdot \sum_{k=1}^{K} \euler^{\theta_{i,k}} - \euler^{\theta_{i,j}} \cdot \frac{\partial}{\partial \theta_{i,m}} \sum_{k=1}^{K} \euler^{\theta_{i,k}}}{[\sum_{k=1}^{K} \euler^{\theta_{i,k}}]^2} \\
+    &= \frac{0 \cdot \sum_{k=1}^{K}\euler^{\theta_{i,k}} - \euler^{{z}_{i,j}} \cdot \euler^{\theta_{i,m}}}{[\sum_{k=1}^{K} \euler^{\theta_{i,k}}]^2} \\
+    &= \frac{- \euler^{{z}_{i,j}} \cdot \euler^{\theta_{i,m}}}{\sum_{k=1}^{K} \euler^{\theta_{i,k}} \cdot \sum_{k=1}^{K} \euler^{\theta_{i,k}}} \\
+    &= -\frac{\euler^{\theta_{i,j}}}{\sum_{k=1}^{K} \euler^{\theta_{i,k}}} \cdot \frac{\euler^{\theta_{i,m}}}{\sum_{k=1}^{K} \euler^{\theta_{i,k}}}
 \end{alignat*}
 
 For this case the Softmax function can also be identified in both the left and right parts of the equation:
 
 \begin{equation*}
-    \frac{\partial \matr{S}_{i,j}}{\partial \vect{z}_{i,m}} = -\matr{S}_{i,j} \cdot \matr{S}_{i,m} ~~ \text{ when } j\not=m
+    \frac{\partial \matr{S}_{i,j}}{\partial \theta_{i,m}} = -\matr{S}_{i,j} \cdot \matr{S}_{i,m} ~~ \text{ when } j\not=m
 \end{equation*}
 
 Thus, the two derivatives calculated above can be represented as:
 
 \begin{equation*}
-    \frac{\partial\matr{S}_{i,j}}{\partial\vect{z}_{i,m}} = 
+    \frac{\partial\matr{S}_{i,j}}{\partial\theta_{i,m}} = 
     \begin{cases}
         \matr{S}_{i,j} \cdot (1 - \matr{S}_{i,m}) & ~~ \text{ when } ~ j = m \\
         \matr{S}_{i,j} \cdot (0 - \matr{S}_{i,m}) & ~~ \text{ when } ~ j \not= m
@@ -346,28 +338,24 @@ By applying the \emph{Kronecker delta function} the equation simplifies even fur
 
 The result of this is a Jacobian matrix; an array of partial derivatives in all of the of both input vectors. This is then done for every output of the Softmax function with respect to each input separately (a batch of samples), and thus the result becomes a list of Jacobian matrices, or a 3D matrix. This result then needs to be condensed to a single partial derivative value by taking each row of the Jacobian matrix and multiplying it with the corresponding value in the loss function's gradient.
 
-\pagebreak
 \subsubsection*{Softmax Cross-Entropy}
 By combining the \emph{Softmax activation} and the \emph{Categorical Cross-Entropy loss} functions, their derivative can be greatly simplified, leading to a significant performance boost. The simplification is possible due to the the inputs of the cross-entropy function being equal to the outputs of the Softmax function, and using the properties of the one-hot encoded vector to reduce a summation to a scalar value.
 
 The chain rule can be applied to calculate the partial derivative of the Categorical Cross-Entropy loss function with respect to the Softmax's inputs:
 
 \begin{alignat*}{10}
-    \frac{\partial L_i}{\partial \vect{z}_{i,m}} &= \frac{\partial L_i}{\partial \yhatij} \cdot \frac{\partial \matr{S}_{i,j}}{\partial \vect{z}_{i,m}} \\
-    &= \frac{\partial L_i}{\partial \yhatij} \cdot \frac{\partial \yhatij}{\partial \vect{z}_{i,m}} \\
-    &= -\sum_{j}\frac{\yij}{\yhatij} \cdot \frac{\partial \yhatij}{\partial \vect{z}_{i,m}} \\
-    &= -\frac{\vect{y}_{i,m}}{\vect{\hat{y}}_{i,m}} \cdot \frac{\partial \vect{\hat{y}}_{i,m}}{\partial \vect{z}_{i,m}} - \sum_{j\not=m}\frac{\yij}{\yhatij} \cdot \frac{\partial\yhatij}{\partial\vect{z}_{i,m}} \\
+    \frac{\partial L_i}{\partial \theta_{i,m}} &= \frac{\partial L_i}{\partial \yhatij} \cdot \frac{\partial \matr{S}_{i,j}}{\partial \theta_{i,m}} = \frac{\partial L_i}{\partial \yhatij} \cdot \frac{\partial \yhatij}{\partial \theta_{i,m}} \\
+    &= -\sum_{j}\frac{\yij}{\yhatij} \cdot \frac{\partial \yhatij}{\partial \theta_{i,m}} \\
+    &= -\frac{\vect{y}_{i,m}}{\vect{\hat{y}}_{i,m}} \cdot \frac{\partial \vect{\hat{y}}_{i,m}}{\partial \theta_{i,m}} - \sum_{j\not=m}\frac{\yij}{\yhatij} \cdot \frac{\partial\yhatij}{\partial\theta_{i,m}} \\
     &= -\frac{\vect{y}_{i,m}}{\vect{\hat{y}}_{i,m}} \cdot \yhatij \cdot (1 - \vect{\hat{y}}_{i,m}) - \sum_{j\not=m}\frac{\yij}{\yhatij}(-\yij\vect{y}_{i,m}) \\
     &= -\vect{y}_{i,m} \cdot (1 - \vect{\hat{y}}_{i,m}) + \sum_{j\not=m}\yij\vect{\hat{y}}_{i,m} \\
     &= -\vect{y}_{i,m} + \vect{y}_{i,m} \vect{\hat{y}}_{i,m} + \sum_{j\not=m}\yij\vect{\hat{y}}_{i,m} \\
     &= -\vect{y}_{i,m} + \sum_{j}\yij\vect{\hat{y}}_{i,m} \\
-    &= -\vect{y}_{i,m} + \vect{\hat{y}}_{i,m} \\
-    &= \vect{\hat{y}}_{i,m} - \vect{y}_{i,m}
+    &= -\vect{y}_{i,m} + \vect{\hat{y}}_{i,m} = \vect{\hat{y}}_{i,m} - \vect{y}_{i,m}
 \end{alignat*}
 
 After applying the chain rule to the partial derivatives of cross-entropy loss function $L_i$ and of the Softmax function $\matr{S}_{i,j}$, the whole equation simplifies significantly to the subtraction of the predicted labels $\vect{\hat{y}}$ and the ground-truth labels $\vect{y}$.
 
-\pagebreak
 \section*{Optimizers}
 During backpropagation the calculated gradient points to the current steepest loss ascent, and taking the negative of the gradient vector flips it toward the current steepest descent. The goal of an optimizer is to adjust a model's parameters to approach the \emph{global minimum} of the loss gradient. When there are millions of dimensions (parameters) in a function, gradient descent is the best known way to search for a global minimum.
 
@@ -402,7 +390,6 @@ One method to add decay is to decrease the learning rate manually or logically i
 
 Another way is to implement a \emph{decay rate} which steadily decays the learning rate per batch or epoch. A step-wise decay rate is also referred to as \emph{1/t decaying} or \emph{exponential decaying}. 
 
-\pagebreak
 The learning rate decay is defined as the reciprocal of the step count fraction:
 
 \begin{equation*}
@@ -534,7 +521,7 @@ All datasets should be transformed in the same way, be it the training, validati
 
 The amount of required samples to train a model may vary greatly, and depends on the data complexity and model size. Usually a few thousand (or tens of thousands) per class or feature will be necessary.
 
-\section{Regularization}
+\section*{Regularization}
 \emph{Regularization methods} are used to reduce generalization error. 
 
 \subsection*{L1 and L2 Regularization}
@@ -631,5 +618,86 @@ And when $r_i = 0$ the dropout filter returns $0$, and thus the derivative is al
 \end{equation*}
 
 Where $Dr_i$ is the dropout for given input at index $i$.
+
+\section*{Binary Logistic Regression}
+\emph{Binary logistic regression} is a model with an output layer where each neuron separately represents two classes: 0 for one of them, and 1 for the other. This single neuron could represent any combination of two classes, like two distinct classifications or a true/false representation, and there could be many of these output neurons.
+
+In a \emph{regressor} type of algorithm like binary logistic regression, the \emph{sigmoid} activation function is used for the output layer rather than softmax, and \emph{binary cross-entropy} for calculating loss instead of \emph{categorical cross-entropy}.
+
+\subsubsection*{Sigmoid Activation Function}
+The \emph{Sigmoid} or \emph{logistic} function is one of the classic granular activation functions used in neural networks. It is used with regressors because it scales a range of outputs from negative to positive infinity to be between $0$ and $1$, and approaches both maximum and minimum values exponentially fast. Its equation is:
+
+\begin{equation*}
+    \sigma_{i,j} = \frac{1}{1 + \euler^{-\theta_{i,j}}}
+\end{equation*}
+
+Where $\theta_{i,j}$, given indices, represents a singular output value of the layer that this activation function takes as input. Index $i$ is the current sample, and index $j$ is the current output in sample $\theta_i$. 
+
+The derivative of the Sigmoid function is needed for the activation function's backwards step. Defining it with respect to its input yields:
+
+\begin{align*}
+    \sigma'_{i,j} &= \frac{\diff}{\diff\theta_{i,j}}\left[\frac{1}{1+\euler^{\theta_{i,j}}}\right] \\
+    &= \frac{\diff}{\diff\theta_{i,j}}(1+\euler^{-\theta_{i,j}})^{-1} \\
+    &= -(1+\euler^{-\theta_{i,j}})^{-2} \cdot \left( \frac{\diff}{\diff\theta_{i,j}}1+\frac{\diff}{\diff\theta_{i,j}}\theta_{i,j} \right) \\
+    &= -(1+\euler^{-\theta_{i,j}})^{-2} \cdot (\euler^{-\theta_{i,j}} \cdot \frac{\diff}{\diff\theta_{i,j}} [-\theta_{i,j})] \\
+    &= -(1+\euler^{-\theta_{i,j}})^{-2} \cdot -(\euler^{-\theta_{i,j}}) \\
+    &= (1+\euler^{-\theta_{i,j}})^{-2} \cdot (\euler^{-\theta_{i,j}}) \\
+    &= \frac{\euler^{-\theta_{i,j}}}{(1+\euler^{-\theta_{i,j}})^2} \\
+    &= \frac{1}{1+\euler^{-\theta_{i,j}}} \cdot \frac{\euler^{-\theta_{i,j}}}{1+\euler^{-\theta_{i,j}}} \\
+    &= \frac{1}{1+\euler^{-\theta_{i,j}}} \cdot \left( \frac{1+\euler^{-\theta_{i,j}}}{1+\euler^{-\theta_{i,j}}} - \frac{1}{1+\euler^{-\theta_{i,j}}} \right) \\
+    &= \frac{1}{1+\euler^{-\theta_{i,j}}} \cdot \left( 1 - \frac{1}{1+\euler^{-\theta_{i,j}}} - \frac{1}{1+\euler^{-\theta_{i,j}}} \right) \\
+    &= \sigma_{i,j} \cdot (1-\sigma_{i,j})
+\end{align*}
+
+As it turns out, the derivative of the sigmoid function equals this function multiplied by the difference of $1$ and the sigmoid function itself.
+
+\subsection*{Binary Cross-Entropy Loss}
+Similar to categorical cross-entropy loss, in \emph{binary cross-entropy} the loss can be determined using the negative log of the predictions. However, rather than only calculating this on the target class, the log-likelihoods of the correct and incorrect classes are summed for each neuron separately. Since class values are either $0$ or $1$, the incorrect class can be simplified to be a \emph{$1$-correct class} by just inverting its value. The negative log-likelihood of the correct and incorrect classes is then calculated by adding them together:
+
+\begin{align*}
+    L_{i,j} &= (y_{i,j})(-\log(\hat{y}_{i,j})) + (1-y_{i,j})(-\log(1-\hat{y}_{i,j})) \\
+    &= -y_{i,j} \cdot \log(\hat{y}_{i,j}) - (1-y_{i,j}) \cdot \log(1-\hat{y}_{i,j})
+\end{align*}
+
+Where $L_{i,j}$ is calculated on a single output $j$, which is a vector of losses containing one value for each output. Because a model can contain multiple binary outputs, and each outputs its own prediction. To obtain the \emph{sample} loss we need to calculate the mean of all of these losses from a single sample:
+
+\begin{equation*}
+    L_i = \frac{1}{J}\sum_{j}L_{i,j}
+\end{equation*}
+
+Where index $i$ is the current sample, index $j$ is the current output in this sample, and $J$ is the number of outputs.
+
+For backpropagation, we have to calculate the partial derivative of the sample loss with respect to
+each input:
+
+\begin{equation*}
+    \frac{\partial L_i}{\partial\hat{y}_{i,j}} = \frac{\partial L_i}{\partial L_{i,j}} \cdot \frac{\partial L_{i,j}}{\partial\hat{y}_{i,j}}
+\end{equation*}
+
+The first term is the partial derivative of the sample loss $L_i$ with respect to a single output loss $L_{i,j}$:
+
+\begin{equation*}
+    \frac{\partial L_i}{\partial L_{i,j}} = \frac{\partial}{\partial L_{i,j}} [ \frac{1}{J}\sum_j L_{i,j} ] = \frac{1}{J} \cdot \frac{\partial}{\partial L_{i,j}} L_{i,j} = \frac{1}{J}
+\end{equation*}
+
+The second term is the \emph{atomic output loss}, a derivative of the single output loss $L_{i,j}$ with respect to the related prediction $\hat{y}_{i,j}$, and is given as:
+
+\begin{align*}
+    \frac{\partial L_{i,j}}{\partial\hat{y}_{i,j}} &= \frac{\partial}{\partial\hat{y}_{i,j}} \left[ -y_{i,j} \cdot \log(\hat{y}_{i,j}) - (1-y_{i,j}) \cdot \log(1-\hat{y}_{i,j}) \right] \\
+    &= \frac{\partial}{\partial\hat{y}_{i,j}} \left[ -y_{i,j} \cdot \log(\hat{y}_{i,j}) \right] + \frac{\partial}{\partial\hat{y}_{i,j}} \left[ -(1-y_{i,j}) \cdot \log(1-\hat{y}_{i,j}) \right]\\
+    &= -y_{i,j} \cdot \frac{\partial}{\partial\hat{y}_{i,j}} \log(\hat{y}_{i,j}) - (1-y_{i,j}) \cdot \frac{\partial}{\partial\hat{y}_{i,j}} \log(1-\hat{y}_{i,j}) \\
+    &= -y_{i,j} \cdot \frac{1}{\hat{y}_{i,j}} \cdot \frac{\partial}{\partial\hat{y}_{i,j}}\hat{y}_{i,j} - (1-y_{i,j}) \cdot \frac{1}{1-\hat{y}_{i,j}} \cdot \frac{\partial}{\partial\hat{y}_{i,j}}[1-\hat{y}_{i,j}] \\
+    &= -\frac{y_{i,j}}{\hat{y}_{i,j}} - \frac{1-y_{i,j}}{1-\hat{y}_{i,j}} \cdot \left( \frac{\partial}{\partial\hat{y}_{i,j}}1 - \frac{\partial}{\partial\hat{y}_{i,j}} \hat{y}_{i,j} \right) \\
+    &= -\frac{y_{i,j}}{\hat{y}_{i,j}} - \frac{1-y_{i,j}}{1-\hat{y}_{i,j}} \cdot (0-1) \\
+    &= - \left( \frac{y_{i,j}}{\hat{y}_{i,j}} - \frac{1-y_{i,j}}{1-\hat{y}_{i,j}} \right) \\
+\end{align*}
+
+And so the equation of the partial derivative of a sample loss with respect to a single output loss becomes:
+
+\begin{align*}
+    \frac{\partial L_i}{\partial\hat{y}_{i,j}} = \frac{\partial L_i}{\partial L_{i,j}} \cdot \frac{\partial L_{i,j}}{\partial\hat{y}_{i,j}} = -\frac{1}{J} \cdot \left( \frac{y_{i,j}}{\hat{y}_{i,j}} - \frac{1-y_{i,j}}{1-\hat{y}_{i,j}} \right)
+\end{align*}
+
+This normalization has to be performed due to the fact that each output returns its own derivative. Without normalization each additional input will raise gradients and would require changing the hyperparameters like the learning rate.
 
 \end{document}

@@ -12,9 +12,8 @@ class Adam(Optimizer): # Adaptive Moment Estimation
         self.beta_2 = beta_2
         
     def pre_update(self):
-        if self.decay:
-            self.current_learning_rate = \
-                self.learning_rate * (1.0 / (1.0 + self.decay * self.iterations))
+        if self.decay: self.current_learning_rate = \
+            self.learning_rate * (1.0 / (1.0 + self.decay * self.iterations))
     
     def update_params(self, layer):
         if not hasattr(layer, 'weight_cache'):
@@ -24,10 +23,10 @@ class Adam(Optimizer): # Adaptive Moment Estimation
             layer.bias_cache = numpy.zeros_like(layer.biases)
 
         # Update momentum with current gradients
-        layer.weight_momentums = self.beta_1 * layer.weight_momentums + \
-                               (1.0 - self.beta_1) * layer.dweights
-        layer.bias_momentums = self.beta_1 * layer.bias_momentums + \
-                               (1.0 - self.beta_1) * layer.dbiases
+        layer.weight_momentums = \
+            self.beta_1 * layer.weight_momentums + (1.0 - self.beta_1) * layer.dweights
+        layer.bias_momentums = \
+            self.beta_1 * layer.bias_momentums + (1.0 - self.beta_1) * layer.dbiases
 
         # Calculate corrected momentum
         i = self.iterations + 1
@@ -35,10 +34,10 @@ class Adam(Optimizer): # Adaptive Moment Estimation
         bias_momentums = layer.bias_momentums / (1.0 - self.beta_1**i)
         
         # Update cache with squared current gradients
-        layer.weight_cache = self.beta_2 * layer.weight_cache + \
-                             (1.0 - self.beta_2) * layer.dweights**2
-        layer.bias_cache = self.beta_2 * layer.bias_cache + \
-                           (1.0 - self.beta_2) * layer.dbiases**2
+        layer.weight_cache = \
+            self.beta_2 * layer.weight_cache + (1.0 - self.beta_2) * layer.dweights**2
+        layer.bias_cache = \
+            self.beta_2 * layer.bias_cache + (1.0 - self.beta_2) * layer.dbiases**2
 
         # Calculate corrected cache
         weight_cache = layer.weight_cache / (1.0 - self.beta_2**i)

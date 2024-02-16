@@ -700,4 +700,80 @@ And so the equation of the partial derivative of a sample loss with respect to a
 
 This normalization has to be performed due to the fact that each output returns its own derivative. Without normalization each additional input will raise gradients and would require changing the hyperparameters like the learning rate.
 
+\section*{Regression}
+Aside from \emph{classification}, where it is determined what something is, the other main type of of model is \emph{regression}, which aims to determine a specific value. This requires a model that accepts scalar values, has more granular output, a new way to measure loss, and another output layer activation function.
+
+\subsection*{Activation Function}
+Regression uses a linear activation function is one that simply returns the input as the output: $f(x): y=x$. For the backwards pass the derivative becomes $\frac{\diff f(x)}{\diff x} = 1$.
+
+\subsection*{Loss}
+The two main methods for calculating error in regression are \emph{mean squared error} (MSE) and \emph{mean absolute error} (MAE). Mean absolute error is actually just the same as L1 error, and mean squared error is like L2 error.
+
+\subsubsection*{Mean Squared Error}
+In mean squared error, the difference between the predicted and true values of single outputs are squared and then averaged:
+
+\begin{equation*}
+    L_i = \frac{1}{J} \sum_j (y_{i,j} - \hat{y}_{i,j})^2
+\end{equation*}
+
+Where $y$ is the target value, $\hat{y}$ means predicted value, $i$ is the index of the current sample, $j$ is the index of the current output in this sample, and $J$ is the number of outputs.
+
+The idea is to penalize more harshly the further away the predicted value is from the intended target. 
+
+Its partial derivative is given as:
+
+\begin{align*}
+    \frac{\partial}{\partial\hat{y}_{i,j}} L_i &= \frac{\partial}{\partial\hat{y}_{i,j}} \left[ \frac{1}{J}\sum_j(y_{i,j} - \hat{y}_{i,j})^2 \right] \\
+    &= \frac{1}{J} \cdot \frac{\partial}{\partial\hat{y}_{i,j}}(y_{i,j} - \hat{y}_{i,j})^2 \\
+    &= \frac{2}{J} \cdot (y_{i,j} - \hat{y}_{i,j}) \cdot \frac{\partial}{\partial\hat{y}_{i,j}}[y_{i,j}-\hat{y}_{i,j}] \\
+    &= \frac{2}{J} \cdot (y_{i,j} - \hat{y}_{i,j}) \cdot (\frac{\partial}{\partial\hat{y}_{i,j}}y_{i,j} - \frac{\partial}{\partial\hat{y}_{i,j}}\hat{y}_{i,j}) \\
+    &= \frac{2}{J} \cdot (y_{i,j} - \hat{y}_{i,j}) \cdot (0-1) \\
+    &= -\frac{2}{J} \cdot (y_{i,j} - \hat{y}_{i,j})
+\end{align*}
+
+\subsubsection*{Mean Absolute Error}
+In mean absolute error the absolute difference between the predicted and true values in a single output is computed and then averaged over all the outputs:
+
+\begin{equation*}
+    L_i = \frac{i}{J}\sum_j\abs{y_{i,j}-\hat{y}_{i,j}}
+\end{equation*}
+
+Where $y$ is the target value, $\hat{y}$ is the predicted value, $i$ is the index of the current sample, $j$ is the index of the current output in this sample, and $J$ is the number of outputs.
+
+Mean absolute error, when used as a loss function, penalizes the error linearly. It produces sparser results than MSE and is robust to outliers, which can be both adventageous and disadvantageous. This is why MAE is used less frequently than MSE loss.
+
+The partial derivative for absolute error with respect to the predicted values is:
+
+\begin{align*}
+    \frac{\partial}{\partial\hat{y}_{i,j}}L_i &= \frac{\partial}{\partial\hat{y}_{i,j}} \left[ \frac{1}{J}\sum_j\abs{y_{i,j}-\hat{y}_{i,j}} \right] \\
+    &= \frac{1}{J} \cdot \frac{\partial}{\partial\hat{y}_{i,j}}\abs{y_{i,j}-\hat{y}_{i,j}} \\
+    &= \frac{1}{J} \cdot \begin{cases}
+        +1 & y_{i,j} - \hat{y}_{i,j} > 0 \\
+        -1 & y_{i,j} - \hat{y}_{i,j} < 0
+    \end{cases}
+\end{align*}
+
+This function is undefined at 0, but in the implementation it should return 0 when $y_{i,j} - \hat{y}_{i,j} = 0$.
+
+\subsection*{Accuracy}
+To measure performance of the model there are to problems. The first is that each output neuron represents a separate output that cannot be combined to calculate accuracy. The second is that the prediction is a scalar value that cannot be directly compared to the ground truth one due to floating-point errors. In actuality, there is no perfect way to show accuracy with regression so we need to simulate or approximate it.
+
+One method is to use a precision value that is calculated using the standard deviation from the ground truth target values and dividing them by some "limit" $\lambda$. The larger this value is, the more strict the accuracy metric will be:
+
+\begin{equation*}
+    \rho = \frac{\sigma(y)}{\lambda} = \frac{1}{\lambda} \cdot \sqrt{\frac{\sum_j(y_j-\mu)^2}{J}}
+\end{equation*}
+
+Where $j$ is one output, $J$ is the number of outputs, or the size of the population, and $
+\mu$ is the \emph{population mean}.
+
+This precision value can be used as an "allowance" for regression outputs when comparing targets and predicted values for accuracy. The comparison is computed by applying the absolute value on the difference between the ground truth and the predictions. Then we check if the difference is smaller than the previously calculated precision:
+
+\begin{equation*}
+    \frac{1}{J} \cdot \sum_j^J(\abs{\hat{y}_j-y_j} < \rho)
+\end{equation*}
+
+\subsection*{Glorot}
+In the backpropagation step, the gradient is calculated using weights, and the learning rate does not effect it. This is why it is important to use the correct weight initialization. In the \emph{Glorot uniform} initialization method, the fraction that multiplies the draw from the uniform distribution is not constant but depends on the number of inputs and the number of neurons. Using this technique to initialize weights can improve the model in cases where the model is not learning at all.
+
 \end{document}

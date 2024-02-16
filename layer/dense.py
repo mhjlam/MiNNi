@@ -4,11 +4,11 @@ from .layer import Layer
 from ..snn import Regularizer
 
 class Dense(Layer):
-    def __init__(self, n_inputs, n_neurons,
+    def __init__(self, n_inputs, n_neurons, weight_scale=0.01,
                  weight_regularizer_l1=0, weight_regularizer_l2=0,
                  bias_regularizer_l1=0, bias_regularizer_l2=0):
         # Initialize weights and biases
-        self.weights = 0.01 * numpy.random.randn(n_inputs, n_neurons)
+        self.weights = weight_scale * numpy.random.randn(n_inputs, n_neurons)
         self.biases = numpy.zeros((1, n_neurons))
         
         # Set regularization strength

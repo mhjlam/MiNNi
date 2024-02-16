@@ -1,4 +1,4 @@
-from .adagrad import AdaGrad
 from .adam import Adam
-from .momentum import Momentum
+from .adagrad import AdaGrad
 from .rmsprop import RMSProp
+from .momentum import Momentum

@@ -2,7 +2,7 @@ import numpy
 from .activation import Activation
 
 class Softmax(Activation):
-    def forward(self, inputs):
+    def forward(self, inputs, training):
         self.inputs = inputs
         
         # Normalized probabilities for each sample
@@ -24,3 +24,6 @@ class Softmax(Activation):
             # Compute sample-wise gradient and add to array of sample gradients
             self.dinputs[index] = numpy.dot(jacobian, dvalues_set)
         return self.dinputs
+
+    def predictions(self, output):
+        return numpy.argmax(output, axis=1)

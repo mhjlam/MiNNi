@@ -4,6 +4,9 @@ class Optimizer(ABC):
     def __init__():
         pass
     
+    def __call__(self, layers):
+        self.update(layers)
+    
     @abstractmethod
     def pre_update(self):
         pass

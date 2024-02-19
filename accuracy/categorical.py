@@ -1,7 +1,7 @@
 import numpy
 from .accuracy import Accuracy
 
-class CategoricalAccuracy(Accuracy):
+class Categorical(Accuracy):
     def __init__(self, *, binary=False):
         self.binary = binary
     

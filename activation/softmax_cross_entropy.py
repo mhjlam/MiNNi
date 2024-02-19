@@ -15,3 +15,6 @@ class SoftmaxCrossEntropy(Activation):
         self.dinputs[range(n_samples), targets] -= 1
         self.dinputs = self.dinputs / n_samples
         return self.dinputs
+
+    def predictions(self, output):
+        pass

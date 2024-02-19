@@ -1,7 +1,7 @@
 import numpy
 from .accuracy import Accuracy
 
-class RegressionAccuracy(Accuracy):
+class Regression(Accuracy):
     def __init__(self):
         self.precision = None
     

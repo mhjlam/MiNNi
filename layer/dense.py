@@ -1,7 +1,6 @@
 import numpy
 
 from .layer import Layer
-from ..snn import Regularizer
 
 class Dense(Layer):
     def __init__(self, n_inputs, n_neurons, weight_scale=0.01,

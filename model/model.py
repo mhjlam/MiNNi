@@ -7,7 +7,7 @@ class Model:
     def __init__(self):
         self.layers = []
         self.softmax_classifier_output = None
-        
+
     def add(self, layer):
         self.layers.append(layer)
 
@@ -118,34 +118,43 @@ class Model:
                   f'data_loss: {epoch_data_loss:.3f}, ' +
                   f'reg_loss: {epoch_reg_loss:.3f}), ' +
                   f'lr: {self.optimizer.current_learning_rate:.20f}')
-            
+        
         # Validation
         if validation_data is not None:
-            self.loss.new_pass()
-            self.accuracy.new_pass()
-            
-            for step in range(validation_steps):
-                batch_X = X_val
-                batch_y = y_val
+            self.evaluate(*validation_data, batch_size=batch_size)
 
-                if batch_size is not None:
-                    i0 = step*batch_size
-                    i1 = (step+1)*batch_size
-                    batch_X = X_val[i0:i1]
-                    batch_y = y_val[i0:i1]
-                
-                output = self.forward(batch_X, training=False)
-                loss = self.loss(output, batch_y)
-                predictions = self.output_activation.predictions(output)
-                accuracy = self.accuracy(predictions, batch_y)
+    def evaluate(self, X_val, y_val, *, batch_size=None):
+        validation_steps = 1
+        if batch_size is not None:
+            validation_steps = len(X_val) // batch_size
+            if validation_steps * batch_size < len(X_val):
+                validation_steps += 1
+        
+        self.loss.new_pass()
+        self.accuracy.new_pass()
+        
+        for step in range(validation_steps):
+            batch_X = X_val
+            batch_y = y_val
+
+            if batch_size is not None:
+                i0 = step*batch_size
+                i1 = (step+1)*batch_size
+                batch_X = X_val[i0:i1]
+                batch_y = y_val[i0:i1]
             
-            # Validation loss/accuracy
-            validation_loss = self.loss.accumulated()
-            validation_acc = self.accuracy.accumulated()
-            
-            print(f'[validation] ' +
-                  f'acc: {validation_acc:.3f}, ' +
-                  f'loss: {validation_loss:.3f}')
+            output = self.forward(batch_X, training=False)
+            self.loss(output, batch_y)
+            predictions = self.output_activation.predictions(output)
+            self.accuracy(predictions, batch_y)
+        
+        # Validation loss/accuracy
+        validation_loss = self.loss.accumulated()
+        validation_acc = self.accuracy.accumulated()
+        
+        print(f'[validation] ' +
+                f'acc: {validation_acc:.3f}, ' +
+                f'loss: {validation_loss:.3f}')
 
     def forward(self, X, training):
         self.input_layer.forward(X, training)

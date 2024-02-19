@@ -39,3 +39,6 @@ model.finalize()
 
 # Train model
 model.train(X, y, validation_data=(X_test, y_test), epochs=10, batch_size=128, print_freq=100)
+
+# Evaluate on the training data to determine final accuracy and loss
+model.evaluate(X, y)

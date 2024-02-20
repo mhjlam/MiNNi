@@ -9,6 +9,19 @@ import matplotlib.pyplot
 
 URL = 'http://nnfs.io/datasets/fashion_mnist_images.zip'
 
+FASHION_MNIST_LABELS = {
+    0: 'T-shirt/top',
+    1: 'Trouser',
+    2: 'Pullover',
+    3: 'Dress',
+    4: 'Coat',
+    5: 'Sandal',
+    6: 'Shirt',
+    7: 'Sneaker',
+    8: 'Bag',
+    9: 'Ankle boot'
+}
+
 def import_dataset_mnist(target_dir):
     if os.path.exists(target_dir):
         return
@@ -38,7 +51,7 @@ def load_dataset_mnist(dataset, path):
             y.append(label)
     return numpy.array(X), numpy.array(y).astype('uint8')
 
-def preprocess_dataset_mnist(X, y, X_test, y_test):
+def preprocess_dataset_mnist(X, y):
     print('Preprocessing')
     
     # Shuffle training dataset
@@ -49,9 +62,11 @@ def preprocess_dataset_mnist(X, y, X_test, y_test):
     
     # Flatten matrix and scale to [-1,1] range
     X = (X.reshape(X.shape[0], -1).astype(numpy.float32) - 127.5) / 127.5
+    return X, y
+
+def preprocess_test_dataset_mnist(X_test):
     X_test = (X_test.reshape(X_test.shape[0], -1).astype(numpy.float32) - 127.5) / 127.5
-    
-    return X, y, X_test, y_test
+    return X_test
 
 def show_random_training_image(dir):
     random_class = random.randint(0,9)
@@ -63,4 +78,4 @@ def show_random_training_image(dir):
     matplotlib.pyplot.show()
     
 if __name__ == '__main__':
-    import_fashion_mnist_images()
+    import_dataset_mnist()

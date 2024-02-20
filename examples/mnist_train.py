@@ -19,7 +19,8 @@ X, y = snn.assets.load_dataset_mnist('train', mnist_fashion_images_dir)
 X_test, y_test = snn.assets.load_dataset_mnist('test', mnist_fashion_images_dir)
 
 # Preprocess dataset
-X, y, X_test, y_test = snn.assets.preprocess_dataset_mnist(X, y, X_test, y_test)
+X, y = snn.assets.preprocess_dataset_mnist(X, y)
+X_test = snn.assets.preprocess_test_dataset_mnist(X_test)
 
 # Define model
 model = snn.model.Model()
@@ -31,10 +32,10 @@ model.add(snn.layer.Dense(128, 10))
 model.add(snn.activation.Softmax())
 
 model.set(
-    loss_func=snn.loss.CategoricalCrossEntropy(),
+    loss=snn.loss.CategoricalCrossEntropy(),
     optimizer=snn.optimizer.Adam(decay=1e-3),
     accuracy=snn.accuracy.Categorical()
-)    
+)
 model.finalize()
 
 # Train model
@@ -42,3 +43,9 @@ model.train(X, y, validation_data=(X_test, y_test), epochs=10, batch_size=128, p
 
 # Evaluate on the training data to determine final accuracy and loss
 model.evaluate(X, y)
+
+# Save parameters to file
+model.save_parameters(os.path.join(os.path.dirname(__file__), 'fashion_mnist.snnp'))
+
+# Save model to file
+model.save(os.path.join(os.path.dirname(__file__), 'fashion_mnist.snnm'))

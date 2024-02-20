@@ -17,9 +17,9 @@ model.add(snn.activation.ReLU())
 model.add(snn.layer.Dense(64, 1, weight_scale=0.1))
 model.add(snn.activation.Linear())
 
-model.set(loss_func=snn.loss.MeanSquaredError(), 
+model.set(loss=snn.loss.MeanSquaredError(), 
           optimizer=snn.optimizer.Adam(learning_rate=0.005, decay=1e-3),
-          accuracy=snn.accuracy.RegressionAccuracy())
+          accuracy=snn.accuracy.Regression())
 
 model.finalize()
 

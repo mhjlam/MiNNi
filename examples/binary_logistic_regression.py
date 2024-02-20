@@ -19,9 +19,9 @@ model.add(snn.activation.ReLU())
 model.add(snn.layer.Dense(64, 1))
 model.add(snn.activation.Sigmoid())
 
-model.set(loss_func=snn.loss.BinaryCrossEntropy(), 
+model.set(loss=snn.loss.BinaryCrossEntropy(), 
           optimizer=snn.optimizer.Adam(decay=5e-7),
-          accuracy=snn.accuracy.CategoricalAccuracy(binary=True))
+          accuracy=snn.accuracy.Categorical(binary=True))
 
 model.finalize()
 

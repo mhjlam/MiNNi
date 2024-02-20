@@ -472,3 +472,5 @@ TSWLatexianTemp*
 # Custom
 examples/control.py
 assets/fashion_mnist_images/
+examples/fashion_mnist.snnp
+examples/fashion_mnist.snnm

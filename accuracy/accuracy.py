@@ -17,6 +17,6 @@ class Accuracy:
         accuracy = self.accumulated_sum / self.accumulated_count
         return accuracy
     
-    def new_pass(self):
+    def reset(self):
         self.accumulated_sum = 0
         self.accumulated_count = 0

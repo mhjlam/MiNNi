@@ -17,9 +17,9 @@ model.add(snn.layer.Dropout(0.1))
 model.add(snn.layer.Dense(512, 3))
 model.add(snn.activation.Softmax())
 
-model.set(loss_func=snn.loss.CategoricalCrossEntropy(), 
+model.set(loss=snn.loss.CategoricalCrossEntropy(), 
           optimizer=snn.optimizer.Adam(learning_rate=0.05, decay=5e-5),
-          accuracy=snn.accuracy.CategoricalAccuracy())
+          accuracy=snn.accuracy.Categorical())
 
 model.finalize()
 

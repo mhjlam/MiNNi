@@ -18,12 +18,12 @@
 
 \newcommand*\diff{\mathop{}\!\mathrm{d}}
 
-\DeclareEmphSequence{\bfseries\itshape}
+\DeclareEmphSequence{\bfseries\slshape}
 \setlength\parindent{0pt}
 \setlength\parskip{4pt}
 \setlist{noitemsep, topsep=0pt, parsep=0pt, partopsep=0pt}
 
-\title{\vspace{-1in}Simple Neural Network}
+\title{\vspace{-1in}Notes}
 \author{}
 \date{}
 
@@ -48,7 +48,9 @@ The \emph{output layer} represents the output value. With classification the out
 
 Any layers between these two are called \emph{hidden layers}. A neural network is \emph{deep} when there are two or more such layers. Hidden layers consist of neurons with a vast number of tweakable parameters: the weights and biases. 
 
-\emph{Dense layers} are those where each neuron in the layer is connected to each neuron in the previous and next layer. This type of layer is also called \emph{linear} or \emph{fully-connected}.
+There are several layer types such as dense layers, dropout layers, convolutional layers, or recurrent layers. \emph{Dense layers} are those where each neuron in the layer is connected to each neuron in the previous and next layer. This type of layer is also called \emph{linear} or \emph{fully-connected}.
+
+Dense layers learn feature values and the correlation between them, while \emph{convolutional} layers are trained to find and understand features like characteristics or traits. 
 
 \subsection*{Parameters}
 When training, the weights of a layer are initialized randomly to a small non-zero value, and the biases set to zero. Otherwise, in a pre-trained model the parameters are initialized to the previously determined output of that model. 
@@ -476,7 +478,6 @@ And then use these estimates to update the parameters according to Adam's update
 %w = w - (lr * v_t / (sqrt(s_t) + epsilon))
 
 \subsubsection*{Hyper-parameters}
-
 In general it is usually a good idea to try the Adam optimizer, but sometimes simple SGD or Momentum performs better than Adam. A general starting learning rate for SGD is $1.0$, with a decay down to $0.1$. For Adam, a good starting learning rate is $0.001$, decaying down to $0.0001$. Keep in mind that different problems may require different values, but these are decent starting values.
 
 \pagebreak
@@ -570,9 +571,9 @@ For $L_{1_\theta}$ the derivative of the absolute value piecewise function must 
 Regularization terms are usually only added to the hidden layers and not the output layer. In general, regularization allows to create much larger models (with many more neurons) without fear of overfitting.
 
 \subsection*{Dropout}
-Another option for regularization is adding a \emph{Dropout Layer}. Dropout works by randomly disabling neurons at a given rate during every forward pass, forcing the network to learn how to make accurate predictions with only a random part of neurons remaining. It forces the model to use more neurons for the same purpose, resulting in a higher chance of learning the underlying function, and becoming much less dependent on any specific arrangement of neurons. 
+Another option for regularization is adding a \emph{Dropout Layer}. Dropout works by randomly disabling neurons at a given rate during every forward pass, forcing the network to learn how to make accurate predictions with only a random part of neurons remaining. It forces the model to use more neurons for the same purpose, resulting in a higher chance of learning the underlying function, and becoming much less dependent on any specific arrangement of neurons.
 
-Dropout mitigates \emph{co-adoption} and overfitting, and becomes more robust against \emph{noise} and other perturbations in the training data. Co-adoption happens when neurons depend on the output values of other neurons and do not learn the underlying function by themselves.
+Dropout mitigates \emph{co-adoption} and overfitting, and becomes more robust against \emph{noise} and other perturbations in the training data. Co-adoption happens when neurons depend on the output values of other neurons and do not learn the underlying function by themselves. As such, dropout is a method to disable, or filter out, certain neurons in an attempt to regularize and improve the model's ability to generalize.
 
 A dropout layer "turns off" neurons with a filter with numbers drawn from a \emph{Bernoulli distribution}. This is a binary probability distribution which gives a value of $1$ with a probability of $p$ and a value of $0$ with a probability of $q$. A random draw $r_i$ from this distribution is given as:
 
@@ -775,5 +776,57 @@ This precision value can be used as an "allowance" for regression outputs when c
 
 \subsection*{Glorot}
 In the backpropagation step, the gradient is calculated using weights, and the learning rate does not effect it. This is why it is important to use the correct weight initialization. In the \emph{Glorot uniform} initialization method, the fraction that multiplies the draw from the uniform distribution is not constant but depends on the number of inputs and the number of neurons. Using this technique to initialize weights can improve the model in cases where the model is not learning at all.
+
+
+\section*{Data Preprocessing}
+The following \emph{preprocessing} steps must be undertaken for a training dataset:
+
+\begin{enumerate}
+    \item Balancing
+    \item Augmentation (if applicable)
+    \item Grayscaling (for images)
+    \item Scaling
+    \item Flattening
+    \item Shuffling
+\end{enumerate}
+
+A dataset used for classification is \emph{balanced} if each class occurs with the same frequency. If a dataset is not balanced, a model will likely become biased to predict the class containing the most images. This is because neural networks seek out the steepest and quickest gradient descent to decrease loss, which is most easily found in a local minimum of the most prominent specific class. 
+
+In an imbalanced dataset, it is better to trim away samples from the high-frequency classes so that each class has the same amount of samples. Another option for image datasets is to \emph{augment} the samples by cropping, rotating, or flipping input images, thus creating new samples to balance out the dataset. 
+
+It is common practice to \emph{grayscale} input images and to resize them to normalize their pixel dimensions so they will have the same amount of input values. This results in grayscale values in the $[0,255]$ range for each pixel.
+
+Next, the data needs to be \emph{scaled} into a $[0,1]$ or $[-1,1]$ range. The manner of how to best scale a dataset takes some experimentation and trial and error. If linear scaling does not suffice because of outliers, some combination of the average value and standard deviation may prove useful. Both the training, testing, and prediction data must be scaled using identical methods. However, any preprocessing transformations must be informed only from the training dataset, and not be derived from the testing dataset. 
+
+Since dense layers operate on batches of 1-dimensional vectors, any 2-dimensional features (such as pixels) must be \emph{flattened} into a singular row. Note that some convolutional neural networks will allow passing 2D image arrays as-is.
+
+Another important transformation is \emph{shuffling}: the process of randomizing the order of the input classes. When all classes are clumped together in chunks, the training step will find new local minima for each classification, likely spiking on the final classification in the order and never finding a global minimum. It is important to realize that this preprocessing step is only necessary when training is done in various batches of data, but this is the general use case. 
+
+\subsection*{Batches}
+A batch is a slice of a fixed size from a preprocessed dataset. Training with batches means iterating through the dataset in a chunk of data at a time, performing the forward pass, loss calculation, backward pass, and optimization. 
+
+Each batch should be large enough and representative of the dataset, so that the result of training on a batch is a good approximation of the direction towards a global minimum. If the batch size is too small, the direction of gradient descent can fluctuate too much, causing the model to take a long time to train. 
+
+Common batch sizes range between 32 and 128 samples. These can be made smaller in case of memory restraints, or larger to increase the speed (but not necessarily effectiveness) of training. Loss and accuracy improvements can usually be seen by increasing the batch size by a factor of 2 or 3. At some point increasing it will have diminishing returns and will become slow. 
+
+Each batch of samples being trained is referred to as a \emph{step}. The outer loop of the training algorithm iterates over the number of epochs and the inner one over the number of steps. Both the batch-wise and epoch-wise loss and accuracy statistics are tracked. The overall epoch-wise loss and accuracy are sample-wise averages.
+
+\section*{Model Usage}
+During model training, the usual \emph{evaluation} process is to analyze its performance, then adjust the hyperparameters, and retrain it using the training and validation data. Then, when the model and hyperparameters that appear to perform the best are found, that model is used on testing data and to make predictions in production. 
+
+Running evaluation on the training data \textit{at the end of the training process} will return the final accuracy and loss. There will be some difference between this mean accuracy and loss and those accumulated during an epoch while the model was still learning.
+
+\subsection*{Model Saving}
+A model's state should be able to be saved for future use in \emph{predictions} or as a \emph{checkpoint} during the training process. There are two options that have different use cases: either only the parameters (weights and biases) are saved, or the whole model with all hyperparameters, layers, and optimizer state. 
+
+Saved parameters can be used to initialize a model that has been trained from similar data and then applied to work with specific data. This is called \emph{transfer learning}. Parameters can also be used to visualize the model, to identify dead neurons, or for \emph{reinforcement learning}, where weights collected from multiple models are committed to a single network. While it is possible to train the model further using just parameters, it is more optimal to load a full model including the optimizer's state.
+
+\subsection*{Prediction}
+Prediction, or \emph{inference}, is the process of loading a trained model and using it to predict the correct classification of a never-before-seen input such as an image.
+
+The output of a trained classification model is an array of \emph{confidence} vectors that contain a confidence metric per class. The highest confidence score points to the \emph{prediction}. With a softmax classifier the predicted class is simply the $\text{argmax}$ of each confidence vector.
+
+\section*{Conclusion}
+The largest challenge of using neural networks is how to best structure a problem so that a model can fit and generalize it, and how to interpret the network's failure.
 
 \end{document}

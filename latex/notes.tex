@@ -135,7 +135,7 @@ The formula for calculating the categorical cross-entropy of $\vect{y}$ (actual/
 
 Where $L_i$ denotes sample loss value, $i$ is the $i$-th sample in the set, $j$ is the label/output index, $\vect{y}$ denotes the target values, and $\vect{\hat{y}}$ denotes the predicted values.
 
-By encoding the target values $\vect{y}_{i,j}$ as one-hot encoded vectors, this equation can be simplified. One-hot means that one of the values in a vector is "hot" with a value of 1, and the rest are "cold" with values of 0. As a result, the summation over the targets $\vect{\hat{j}}$ zeroes out to just one multiplication by $1$, simplifying the equation to:
+By encoding the target values $\vect{y}_{i,j}$ as one-hot encoded vectors, this equation can be simplified. One-hot means that one of the values in a vector is "hot" with a value of 1, and the rest are "cold" with values of 0. As a result, the summation over the targets $\vect{\hat{y}}$ zeroes out to just one multiplication by $1$, simplifying the equation to:
 
 \begin{equation*}
     L_i = -\log(\vect{\hat{y}}_{i,k})
@@ -657,7 +657,7 @@ Similar to categorical cross-entropy loss, in \emph{binary cross-entropy} the lo
 
 \begin{align*}
     L_{i,j} &= (y_{i,j})(-\log(\hat{y}_{i,j})) + (1-y_{i,j})(-\log(1-\hat{y}_{i,j})) \\
-    &= -y_{i,j} \cdot \log(\hat{y}_{i,j}) - (1-y_{i,j}) \cdot \log(1-\hat{y}_{i,j})
+    &= -y_{i,j} \cdot \log(\hat{y}_{i,j}) + (1-y_{i,j}) \cdot \log(1-\hat{y}_{i,j})
 \end{align*}
 
 Where $L_{i,j}$ is calculated on a single output $j$, which is a vector of losses containing one value for each output. Because a model can contain multiple binary outputs, and each outputs its own prediction. To obtain the \emph{sample} loss we need to calculate the mean of all of these losses from a single sample:

@@ -68,7 +68,7 @@ model.train(X, y, validation_data=(X_test, y_test), epochs=10000, print_freq=100
 
 #### Training
 
-```
+```python
 import os
 
 import snn
@@ -114,7 +114,7 @@ model.save(os.path.join(os.path.dirname(__file__), 'fashion_mnist.snnm'))
 
 #### Testing
 
-```
+```python
 import os
 
 import snn.model

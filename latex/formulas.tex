@@ -43,12 +43,12 @@
 \section*{Forward Propagation}
 
 \begin{equation*}
-    \haty = f_L((X \cdot W_1+b_1) \cdot W_2 + b_2 \cdot \ldots \cdot W_L + b_L)
+    \haty = \sigma_L((X \cdot W_1+b_1) \cdot W_2 + b_2 \cdot \ldots \cdot W_L + b_L)
 \end{equation*}
 Where:
 \begin{itemize}
     \item $L$: output layer
-    \item $f_L$: activation function applied at the output layer $L$
+    \item $\sigma_L$: activation function applied at the output layer $L$
     \item $X$: vector of input features
     \item $W_l$: weight matrix of layer $l$
     \item $b_l$: bias vector of layer $l$
@@ -81,52 +81,6 @@ Where:
     \item $x_i$: the $i$-th element of input vector $x$
     \item $b_j$: the bias term for the $j$-th neuron in the dense layer
 \end{itemize}
-
-\subsubsection*{Dropout}
-A binomial experiment consists of a fixed number $n$ of statistically independent Bernoulli trials, each with a probability of success $p$, and counts the number of successes. A random variable corresponding to a binomial experiment denoted by $B(n,p)$ has a binomial distribution. The probability of exactly $k$ successes in experiment $B(n,p)$ is given by:
-
-\begin{equation*}
-    P(k) = B(n,p) = \binom{n}{k} p^k (1-p)^{n-k}
-\end{equation*}
-Where:
-\begin{itemize}
-    \item $\binom{n}{k}$: binomial coefficient
-    \item $n$: number of trials
-    \item $k$: number of successes
-    \item $p$: probability of success
-    \item $(1-p)$: probability of failure
-\end{itemize}
-
-The Bernoulli distribution is a special case of the binomial distribution with $n=1$ and $k \in {0,1}$:
-\begin{equation*}
-    B(1,p) = p^k (1-p)^{1-k}
-\end{equation*}
-Or equivalently:
-\begin{equation*}
-    B(1,p) = \begin{cases}
-        p   & \text{ if } x=1\\
-        1-p & \text{ if } x=0
-    \end{cases}
-\end{equation*}
-
-Draw a random binary mask from the Bernoulli distribution described above with probability $p$ to generate a sequence of binary values (0s and 1s). Then the formula for the operation of a dropout layer is given as:
-\begin{align*}
-    z = x \cdot B(1,p) \frac{1}{1-p}
-\end{align*}
-Where:
-\begin{itemize}
-    \item $z$: output after dropout
-    \item $x$: input vector
-    \item $B(1,p)$: Bernoulli distribution with probability $p$
-    \item $p$: probability of success
-\end{itemize}
-
-When dropout is applied during training, a fraction $p$ of neuron outputs are randomly set to zero. Thus, the remaining fraction $1-p$ of neuron outputs are scaled up by a factor of $\frac{1}{1-p}$ to compensate for the dropped neurons. During inference, dropout is not applied.
-
-\subsubsection*{Recurrent}
-Placeholder
-\subsubsection*{Convolutional}
-Placeholder
 
 \subsection*{Activation Functions}
 \subsubsection*{Linear}
@@ -223,60 +177,52 @@ When $y$ is expressed as one-hot vectors, the equation simplifies to:
 \end{equation*}
 Where $k$ is the index of the target label.
 
-
 \newpage
 \section*{Backward Propagation}
 The backpropagation process involves the following steps:
 \begin{enumerate}
-    \item Compute the error signals $\delta$ for each layer $l$. An error signal is the gradient of the loss function with respect to the activations $a$ and its formula thus depends on the chosen activation and loss functions.
-    
-    For the final layer $L$ the error signal is given as:
-    \begin{align*}
-        \delta_L &= \frac{\partial\ELL}{\partial a_L} \odot \sigma'_L(z_L)\\
-                 &= \ELL'_L \odot \sigma'_L(z_L)
-    \end{align*}
-    Where:
-    \begin{itemize}
-        \item $\odot$ denotes element-wise multiplication
-        \item $\frac{\partial\ELL}{\partial a_L}$ or $\ELL'_L$: partial derivative of the loss function with respect to the activations of layer $L$
-        \item $a_L$: activations of layer $L$
-        \item $\sigma'_L$: derivative of activation function $\sigma$ of layer $L$
-        \item $z_L$: pre-activation matrix or logits of layer $L$ ($z_L = W_L\cdot a_L + b_L$)
-    \end{itemize}
-    The error signal at hidden layers is computed based on the error signals of the subsequent layers and the weights connecting the current layer to the following ones. The formula involves backpropagating the error signal from the subsequent layer ($\delta_{l+1}$) through the weights, combined with the derivative of the activation function in the current layer $\sigma'_l$:
-    \begin{equation*}
-        \delta_l = (W_l^T \cdot \delta_{l+1}) \odot \sigma'_l(z_l)
-    \end{equation*}
-    Where:
-    \begin{itemize}
-        \item $\cdot$ denotes the dot product
-        \item $W_l$: weight matrix of layer $l$
-        \item $\sigma'_l$: derivative of activation function $\sigma$ of layer $l$
-        \item $z_l$: pre-activation matrix or logits of layer $l$ ($z_l = W_l\cdot a_{l+1} + b_l$)
-    \end{itemize}
-
-    \item Compute the parameters (weights and biases) for each layer using the error signal and the activations of the previous layer:
-    \begin{align*}
-        \nabla W_l = \frac{\partial\ELL}{\partial W_l} &= a_{l+1} \cdot \delta_l \\
-        \nabla b_l =\frac{\partial\ELL}{\partial b_l} &= \sum_{i=1}^{n} \delta_{l(ij)} \\
-    \end{align*}
-    Where $\delta_{l(ij)}$ denotes the error signal (gradient) for the $j$-th neuron in layer $l$ for the $i$-th sample in the batch. The summation sums up all the rows of the error signal matrix along the columns.
-    \item Update the parameters using an optimizer such as gradient descent:
-    \begin{align*}
-        W_l &\leftarrow W_l - \alpha \cdot \nabla W_l\\
-        b_l &\leftarrow b_l - \alpha \cdot \nabla b_l
-    \end{align*}
-    Where $\alpha$ is the learning rate. For another optimizer this equation will be more complex.
+    \item Compute the error signals or gradient of the loss function with respect to the activations for each layer.
+    \item Compute the parameters (weights and biases) for each layer using the error signal of that layer and the activations of the previous layer.
+    \item Update the parameters (weights and biases) using an optimizer (e.g. gradient descent).
 \end{enumerate}
 
-% A = derivative of loss function
-% B = calculate derivative of activation function of final layer (dvalues = A)
-% C = calculate derivative of final layer (dvalues = B)
-% D = calculate derivative of activation function of previous layer (dvalues = C)
-% E = calculate derivative of previous layer (dvalues = D)
-% continue until first layer
+\subsection*{Error Signal}
+An error signal of a layer $l$ is the gradient of the loss function with respect to the activations $a$ and its formula thus depends on the chosen activation and loss functions.
+    
+For the final layer $l=L$ the error signal is given as:
+\begin{align*}
+    \delta_L &= \frac{\partial\ELL}{\partial a_L} \odot \sigma'_L(z_L)\\
+                &= \ELL'_L \odot \sigma'_L(z_L)
+\end{align*}
+Where:
+\begin{itemize}
+    \item $\odot$ denotes element-wise multiplication
+    \item $\frac{\partial\ELL}{\partial a_L}$ or $\ELL'_L$: partial derivative of the loss function with respect to the activations of layer $L$
+    \item $a_L$: activations of layer $L$
+    \item $\sigma'_L$: derivative of activation function $\sigma$ of layer $L$
+    \item $z_L$: pre-activation matrix or logits of layer $L$ ($z_L = W_L\cdot a_L + b_L$)
+\end{itemize}
+The error signal at hidden layers is computed based on the error signals of the subsequent layers and the weights connecting the current layer to the following ones. The formula involves backpropagating the error signal from the subsequent layer ($\delta_{l+1}$) through the weights, combined with the derivative of the activation function in the current layer $\sigma'_l$:
+\begin{equation*}
+    \delta_l = (W_l^T \cdot \delta_{l+1}) \odot \sigma'_l(z_l)
+\end{equation*}
+Where:
+\begin{itemize}
+    \item $\cdot$ denotes the dot product
+    \item $W_l$: weight matrix of layer $l$
+    \item $\sigma'_l$: derivative of activation function $\sigma$ of layer $l$
+    \item $z_l$: pre-activation matrix or logits of layer $l$ ($z_l = W_l\cdot a_{l+1} + b_l$)
+\end{itemize}
 
-\subsection*{Activation}
+\subsection*{Layer}
+The gradients of the weights and biases of a layer $l$ are calculated using the error signal of the current layer and the activations of the preceding layer ($l+1$):
+\begin{align*}
+    \nabla W_l = \frac{\partial\ELL}{\partial W_l} &= a_{l+1} \cdot \delta_l \\
+    \nabla b_l =\frac{\partial\ELL}{\partial b_l} &= \sum_{i=1}^{n} \delta_{l(ij)} \\
+\end{align*}
+Where $\delta_{l(ij)}$ denotes the error signal (gradient) for the $j$-th neuron in layer $l$ for the $i$-th sample in the batch. The summation sums up all the rows of the error signal matrix along the columns.
+
+\subsection*{Activations}
 In the backward step for an activation function $\sigma$ its derivative with respect to the logits $z$ (pre-activation values of a layer) must be calculated and is represented as:
 \begin{align*}
     \frac{\partial\ELL}{\partial\sigma} = \sigma'(z)
@@ -458,6 +404,115 @@ Where:
     \item $\hat{m}_{t+1}$ and $\hat{v}_{t+1}$ are bias-corrected estimates of the first and second moments
     \item $\beta_1$ and $\beta_2$ are the decay rates for the moving averages, typically close to $1$ (e.g. $0.9$ and $0.999$, respectively)
     \item $\epsilon$: small constant to avoid division by zero
+\end{itemize}
+
+\pagebreak
+\section*{Regularization}
+
+\subsection*{L1 Regularization}
+L1 regularization adds the sum of the absolute values of the parameters to the loss function. The L1 regularization terms for a parameter $\theta$ (weights or bias) is:
+\begin{equation*}
+    L_{1_\theta} = \lambda \sum_m \abs{\theta_m}
+\end{equation*}
+Where:
+\begin{itemize}
+    \item $L_{1_\theta}$: L1 regularization penalty for parameter $\theta$
+    \item $\lambda$: lambda term that controls the impact of the regularization penalty
+    \item $\theta_m$: $m$-th element in the vector or matrix of parameters $\theta$
+\end{itemize}
+
+The gradient of the L1 regularization term with respect to the parameters is simply the sign of the parameters $\text{sign}(\theta)$. Therefore, the total gradient of the loss function with respect to the parameters of the dense layer are:
+\begin{equation*}
+    L'_{1_\theta} = \frac{\partial\ELL}{\partial \theta_m} = \nabla\theta_m + \lambda\,\text{sign}(\theta_m)
+\end{equation*}
+Where:
+\begin{itemize}
+    \item $\ELL$: loss function
+    \item $\nabla\theta_m$: gradient of the loss function with respect to the $m$-th parameters without regularization
+    \item $\lambda$: lambda term that controls the impact of the regularization penalty
+    \item $\theta_m$: $m$-th element in the vector or matrix of parameters $\theta$
+\end{itemize}
+
+\subsection*{L2 Regularization}
+L2 regularization adds the sum of the squared values of the parameters to the loss function. The L2 regularization term is:
+\begin{equation*}
+    L_{2_\theta} = \lambda \sum_m \abs{\theta_m^2}
+\end{equation*}
+Where:
+\begin{itemize}
+    \item $L_{2_\theta}$: L2 regularization penalty for parameter $\theta$
+    \item $\lambda$: lambda term that controls the impact of the regularization penalty
+    \item $\theta_m$: $m$-th element in the vector or matrix of parameters $\theta$
+\end{itemize}
+
+The gradient of the L2 regularization term with respect to the parameters is simply the sign of the parameters is: 
+\begin{equation*}
+    L'_{2_\theta} = \frac{\partial\ELL}{\partial \theta_m} = \nabla\theta_m + 2\lambda\theta_m
+\end{equation*}
+Where:
+\begin{itemize}
+    \item $\ELL$: loss function
+    \item $\nabla\theta_m$: gradient of the loss function with respect to the $m$-th parameters without regularization
+    \item $\lambda$: lambda term that controls the impact of the regularization penalty
+    \item $\theta_m$: $m$-th element in the vector or matrix of parameters $\theta$
+\end{itemize}
+
+\subsection*{Dropout Layer}
+In a dropout layer, during a forward pass, neurons are randomly dropped out with certain probability $p$ during tyraining. This helps prevent overfitting by forcing the network to learn redundant representations.
+
+A binomial experiment consists of a fixed number $n$ of statistically independent Bernoulli trials, each with a probability of success $p$, and counts the number of successes. A random variable corresponding to a binomial experiment denoted by $B(n,p)$ has a binomial distribution. The probability of exactly $k$ successes in experiment $B(n,p)$ is given by:
+
+\begin{equation*}
+    P(k) = B(n,p) = \binom{n}{k} p^k (1-p)^{n-k}
+\end{equation*}
+Where:
+\begin{itemize}
+    \item $\binom{n}{k}$: binomial coefficient
+    \item $n$: number of trials
+    \item $k$: number of successes
+    \item $p$: probability of success
+    \item $(1-p)$: probability of failure
+\end{itemize}
+
+The Bernoulli distribution is a special case of the binomial distribution with $n=1$ and $k \in {0,1}$:
+\begin{equation*}
+    B(1,p) = p^k (1-p)^{1-k}
+\end{equation*}
+Or equivalently:
+\begin{equation*}
+    B(1,p) = \begin{cases}
+        p   & \text{ if } x=1\\
+        1-p & \text{ if } x=0
+    \end{cases}
+\end{equation*}
+
+Draw a random binary mask from the Bernoulli distribution described above with probability $p$ to generate a sequence of binary values (0s and 1s). Then the formula for the operation of a dropout layer is given as:
+\begin{align*}
+    z = x \cdot B(1,p) \frac{1}{1-p}
+\end{align*}
+Where:
+\begin{itemize}
+    \item $z$: output after dropout
+    \item $x$: input vector
+    \item $B(1,p)$: Bernoulli distribution with probability $p$
+    \item $p$: probability of success
+\end{itemize}
+
+When dropout is applied during training, a fraction $p$ of neuron outputs are randomly set to zero. Thus, the remaining fraction $1-p$ of neuron outputs are scaled up by a factor of $\frac{1}{1-p}$ to compensate for the dropped neurons. During inference, dropout is not applied.
+
+During the backward pass, the activations of the remaining neurons need to be scaled to ensure that the expected output of the layer remains the same during training and inference. The formula for the backwards pass of the dropout layer is given as:
+\begin{equation*}
+    \frac{\partial\ELL}{\partial x} = \frac{\partial\ELL}{\partial\hat{x}} \odot \frac{B(1,p)}{1-p}
+\end{equation*}
+Where:
+\begin{itemize}
+    \item $\odot$ represents element-wise multiplication
+    \item $\ELL$: loss with respect to the output of the dropout layer
+    \item $x$: input to the dropout layer
+    \item $\hat{x}$: output of the dropout layer
+    \item $\frac{\partial\ELL}{\partial x}$: gradient of the loss with respect to the input to the dropout layer
+    \item $\frac{\partial\ELL}{\partial\hat{x}}$: gradient of the loss with respect to the output of the dropout layer
+    \item $\frac{B(1,p)}{1-p}$: binary mask generated during the forward pass, with elements set to 1 for the neurons that are retained and 0 for the neurons that were dropped
 \end{itemize}
 
 \end{document}

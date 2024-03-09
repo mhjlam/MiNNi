@@ -28,8 +28,11 @@ model = snn.model.Model.load(os.path.join(os.path.dirname(__file__), 'fashion_mn
 model.evaluate(X_test, y_test)
 
 # Predict on the first 5 samples from validation dataset
-confidences = model.predict(X_test[:5])
+confidences = model.predict(X_test)
 predictions = model.output_activation.predictions(confidences)
 
-for prediction in predictions:
-    print(prediction, snn.assets.FASHION_MNIST_LABELS[prediction])
+failures = 0
+for i, prediction in enumerate(predictions):
+    if prediction != y_test[i]:
+        failures += 1
+print(f'Failures: {failures}')

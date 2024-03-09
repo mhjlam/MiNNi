@@ -31,12 +31,12 @@ class Dense(Layer):
             dL1 = numpy.ones_like(self.weights)
             dL1[self.weights < 0] = -1
             self.dweights += self.weight_regularizer_l1 * dL1
-        if self.weight_regularizer_l2 > 0:
-            self.dweights += 2 * self.weight_regularizer_l2 * self.weights
         if self.bias_regularizer_l1 > 0:
             dL1 = numpy.ones_like(self.biases)
             dL1[self.biases < 0] = -1
             self.dbiases += self.bias_regularizer_l1 * dL1
+        if self.weight_regularizer_l2 > 0:
+            self.dweights += 2 * self.weight_regularizer_l2 * self.weights
         if self.bias_regularizer_l2 > 0:
             self.dbiases += 2 * self.bias_regularizer_l2 * self.biases
 

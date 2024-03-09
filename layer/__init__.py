@@ -1,3 +1,5 @@
+from .layer import Layer
+
 from .dense import Dense
-from .input import Input
 from .dropout import Dropout
+from .linear import Linear

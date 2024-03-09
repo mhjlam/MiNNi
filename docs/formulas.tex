@@ -1,0 +1,518 @@
+\documentclass[a4paper]{article}
+\usepackage[a4paper, left=2.5cm,right=2.5cm,top=2.5cm,bottom=2.5cm]{geometry}
+\usepackage{amsmath, amssymb, bm, enumitem, graphicx}
+
+\allowdisplaybreaks
+
+\newcommand{\abs}[1]{\lvert#1\rvert}
+\newcommand{\euler}{\mathrm{e}}
+\newcommand{\mul}{\text{mul}}
+\newcommand{\relu}{\text{ReLU}}
+\newcommand{\argmax}{\text{argmax}}
+
+\newcommand{\haty}{\hat{y}}
+
+\newcommand{\ELL}{\mathcal{L}}
+\newcommand*\diff{\mathop{}\!\mathrm{d}}
+
+\DeclareEmphSequence{\bfseries\slshape}
+\setlength\parindent{0pt}
+\setlength\parskip{4pt}
+\setlist{noitemsep, topsep=4pt, parsep=2pt, partopsep=0pt}
+
+\title{\vspace{-1in}Formulas}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\vspace{-0.5in}
+
+\section*{Definitions}
+
+\begin{itemize}
+\item $X$: vector of input features, where $x_i$ denotes the $i$-th input feature
+\item $y$: true or target output associated with the input data
+\item $\hat{y}$: predicted output produced by the neural network
+\item $W$: weight matrix with dimension $n \times m$, where $m$ is the number of neurons in the dense layer
+\item $b$: bias vector with dimension $m$
+\item $z$: weighted sum of inputs plus the bias term (the logits or pre-activations)
+\item $h=\sigma(z)$: layer output vector after applying activation function $\sigma$ element-wise over $z$
+\end{itemize}
+
+\section*{Forward Propagation}
+
+\begin{equation*}
+    \haty = \sigma_L((X \cdot W_1+b_1) \cdot W_2 + b_2 \cdot \ldots \cdot W_L + b_L)
+\end{equation*}
+Where:
+\begin{itemize}
+    \item $L$: output layer
+    \item $\sigma_L$: activation function applied at the output layer $L$
+    \item $X$: vector of input features
+    \item $W_l$: weight matrix of layer $l$
+    \item $b_l$: bias vector of layer $l$
+\end{itemize}
+
+\subsection*{Layers}
+
+\subsubsection*{Dense}
+The formula for the operation performed by a single dense layer is a neural network is:
+\begin{align*}
+    z = W \cdot x + b
+\end{align*}
+Where:
+\begin{itemize}
+    \item $z$: weighted sum of inputs plus the bias term
+    \item $W$: weight matrix of the dense layer with dimension $n \times m$, where $m$ is the number of neurons in the dense layer
+    \item $x$: input vector to the dense layer with dimension $n$
+    \item $b$: bias vector of the dense layer with dimension $m$
+\end{itemize}
+
+Or in matrix notation:
+\begin{equation*}
+    z_j = \sum_{i=1}^{n} w_{ij} \cdot x_i + b_j
+\end{equation*}
+Where:
+\begin{itemize}
+    \item $z_j$: $j$-th element of the output vector $z$
+    \item $n$: number of neurons in the layer
+    \item $w_{ij}$: the weight connecting the $i$-th input neuron to the $j$-th neuron in the dense layer
+    \item $x_i$: the $i$-th element of input vector $x$
+    \item $b_j$: the bias term for the $j$-th neuron in the dense layer
+\end{itemize}
+
+\subsection*{Activation Functions}
+\subsubsection*{Linear}
+\begin{equation*}
+    \sigma(x) = x
+\end{equation*}
+Where:
+\begin{itemize}
+    \item $\sigma(x)$: linear activation function
+    \item $x$: input vector
+\end{itemize}
+
+\subsubsection*{Sigmoid}
+\begin{equation*}
+    \sigma(x) = \frac{1}{1+\euler^{-x}}
+\end{equation*}
+Where:
+\begin{itemize}
+    \item $\sigma(x)$: sigmoid activation function
+    \item $\euler$: Euler's number, or the base of the natural logarithm
+    \item $x$: input vector
+\end{itemize}
+
+\subsubsection*{Rectifier}
+\begin{equation*}
+    \sigma(x) = \max(0,x)
+\end{equation*}
+Where:
+\begin{itemize}
+    \item $\sigma(x)$: rectifier or Rectified Linear Unit activation function
+    \item $\max(0,x)$: function that returns 0 or $x$ depending on which one is larger
+    \item $x$: input vector
+\end{itemize}
+
+\subsubsection*{Softmax}
+\begin{equation*}
+    \sigma_i(z) = \frac{\euler^{z_i}}{\sum_{j=1}^{N} \euler^{z_{ij}}}
+\end{equation*}
+Where:
+\begin{itemize}
+    \item $\sigma(z)_i$: probability assigned to the $i$-th class after applying the Softmax function
+    \item $z_i$: logit corresponding to the $i$-th class
+    \item $\euler$: Euler's number, or the base of the natural logarithm
+    \item $N$: total number of classes
+\end{itemize}
+
+\subsection*{Loss}
+\subsubsection*{Mean Absolute Error}
+\begin{equation*}
+    \ELL = \frac{1}{n} \sum_{i=1}^{n} \abs{\haty_i - y_i}
+\end{equation*}
+Where:
+\begin{itemize}
+    \item $\haty_i$: predicted value for the $i$-th sample
+    \item $y_i$: true value for the $i$-th sample
+    \item $\abs{\cdot}$: absolute value
+\end{itemize}
+
+\subsubsection*{Mean Squared Error}
+\begin{equation*}
+    \ELL = \frac{1}{n} \sum_{i=1}^{n} (\haty_i - y_i)^2
+\end{equation*}
+Where:
+\begin{itemize}
+    \item $\haty_i$: predicted value for the $i$-th sample
+    \item $y_i$: true value for the $i$-th sample
+\end{itemize}
+
+\subsubsection*{Binary Cross-Entropy}
+\begin{equation*}
+    \ELL = -\frac{1}{N} \sum_{i=1}^{N} (y_i \, \log(\haty_i) + (1-y_i) \, \log(1-\haty_i))
+\end{equation*}
+Where:
+\begin{itemize}
+    \item $N$: number of classes
+    \item $y_i$: truth label for the $i$-th sample
+    \item $\haty_i$: predicted value (0 or 1) for the $i$-th sample
+\end{itemize}
+
+
+\subsubsection*{Categorical Cross-Entropy}
+\begin{equation*}
+    \ELL = -\frac{1}{N} \sum_{i=1}^{N} y_i \; \log(\haty_i)
+\end{equation*}
+Where:
+\begin{itemize}
+    \item $N$: number of samples
+    \item $y_i$: truth label for the $i$-th sample
+    \item $\haty_i$: predicted value (0 or 1) for the $i$-th sample
+\end{itemize}
+When $y$ is expressed as one-hot vectors, the equation simplifies to:
+\begin{equation*}
+    \ELL = -\frac{1}{N} \log(\haty_{i,k})
+\end{equation*}
+Where $k$ is the index of the target label.
+
+\newpage
+\section*{Backward Propagation}
+The backpropagation process involves the following steps:
+\begin{enumerate}
+    \item Compute the error signals or gradient of the loss function with respect to the activations for each layer.
+    \item Compute the parameters (weights and biases) for each layer using the error signal of that layer and the activations of the previous layer.
+    \item Update the parameters (weights and biases) using an optimizer (e.g. gradient descent).
+\end{enumerate}
+
+\subsection*{Error Signal}
+An error signal of a layer $l$ is the gradient of the loss function with respect to the activations $a$ and its formula thus depends on the chosen activation and loss functions.
+    
+For the final layer $l=L$ the error signal is given as:
+\begin{align*}
+    \delta_L &= \frac{\partial\ELL}{\partial a_L} \odot \sigma'_L(z_L)\\
+                &= \ELL'_L \odot \sigma'_L(z_L)
+\end{align*}
+Where:
+\begin{itemize}
+    \item $\odot$ denotes element-wise multiplication
+    \item $\frac{\partial\ELL}{\partial a_L}$ or $\ELL'_L$: partial derivative of the loss function with respect to the activations of layer $L$
+    \item $a_L$: activations of layer $L$
+    \item $\sigma'_L$: derivative of activation function $\sigma$ of layer $L$
+    \item $z_L$: pre-activation matrix or logits of layer $L$ ($z_L = W_L\cdot a_L + b_L$)
+\end{itemize}
+The error signal at hidden layers is computed based on the error signals of the subsequent layers and the weights connecting the current layer to the following ones. The formula involves backpropagating the error signal from the subsequent layer ($\delta_{l+1}$) through the weights, combined with the derivative of the activation function in the current layer $\sigma'_l$:
+\begin{equation*}
+    \delta_l = (W_l^T \cdot \delta_{l+1}) \odot \sigma'_l(z_l)
+\end{equation*}
+Where:
+\begin{itemize}
+    \item $\cdot$ denotes the dot product
+    \item $W_l$: weight matrix of layer $l$
+    \item $\sigma'_l$: derivative of activation function $\sigma$ of layer $l$
+    \item $z_l$: pre-activation matrix or logits of layer $l$ ($z_l = W_l\cdot a_{l+1} + b_l$)
+\end{itemize}
+
+\subsection*{Layer}
+The gradients of the weights and biases of a layer $l$ are calculated using the error signal of the current layer and the activations of the preceding layer ($l+1$):
+\begin{align*}
+    \nabla W_l = \frac{\partial\ELL}{\partial W_l} &= a_{l+1} \cdot \delta_l \\
+    \nabla b_l =\frac{\partial\ELL}{\partial b_l} &= \sum_{i=1}^{n} \delta_{l(ij)} \\
+\end{align*}
+Where $\delta_{l(ij)}$ denotes the error signal (gradient) for the $j$-th neuron in layer $l$ for the $i$-th sample in the batch. The summation sums up all the rows of the error signal matrix along the columns.
+
+\subsection*{Activations}
+In the backward step for an activation function $\sigma$ its derivative with respect to the logits $z$ (pre-activation values of a layer) must be calculated and is represented as:
+\begin{align*}
+    \frac{\partial\ELL}{\partial\sigma} = \sigma'(z)
+\end{align*}
+
+\subsubsection*{Linear}
+\begin{equation*}
+    \sigma'(z) = 1
+\end{equation*}
+The backward pass for a linear activation function simply involves passing the error signal backward unchanged through the layer.
+
+\subsubsection*{Sigmoid}
+\begin{equation*}
+    \sigma'(z) = \sigma(z) \cdot (1-\sigma(z))
+\end{equation*}
+
+\subsubsection*{Rectified Linear Unit}
+\begin{equation*}
+    \sigma'(z) = \begin{cases}
+        1 & \text{ if } z > 0\\
+        0 & \text{ if } z \leq 0
+    \end{cases}
+\end{equation*}
+
+\subsubsection*{Softmax}
+\begin{equation*}
+    \sigma'(z) = \frac{\partial \haty_i}{\partial z_j} = \begin{cases}
+        \haty_i-\haty_i\haty_j & \text{ when } i  =  j \\
+               -\haty_i\haty_j & \text{ when } i\neq j
+    \end{cases}
+\end{equation*}
+Where:
+\begin{itemize}
+    \item $\haty_i$: $i$-th element of the Softmax function predictions $\haty$
+    \item $z_j$: $j$-th element of the Softmax function input vector $z$
+\end{itemize}
+
+\subsection*{Loss}
+\subsubsection*{Mean Absolute Error}
+\begin{equation*}
+    \ELL'(\haty_i) = \frac{\partial\ELL}{\partial \haty_i} = \frac{1}{n}\text{sign}(y_i-\haty_i)
+\end{equation*}
+Where 
+\begin{itemize}
+    \item $\haty_i$: $i$-th element of the Softmax function predictions $\haty$
+    \item $y_i$: $i$-th element of the target label vector $y$
+    \item $\text{sign}(x)$: $-1 \text{ if } x < 0, 0 \text{ if } x = 0, \text{ and } 1 \text{ if } x > 0$
+\end{itemize}
+
+\subsubsection*{Mean Squared Error}
+\begin{equation*}
+    \ELL'(\haty_i) = \frac{\partial\ELL}{\partial \haty_i} = -\frac{1}{n}2(\haty_i-y_i)
+\end{equation*}
+Where:
+\begin{itemize}
+    \item $\haty_i$: $i$-th element of the Softmax function predictions $\haty$
+    \item $y_i$: $i$-th element of the target label vector $y$
+\end{itemize}
+
+\subsubsection*{Binary Cross-Entropy}
+\begin{equation*}
+    \ELL'(\haty_i) = \frac{\partial\ELL}{\partial \haty_i} = -\frac{1}{n}\left[ \frac{y_i}{\haty_i} - \frac{1-y_i}{1-\haty_i} \right]
+\end{equation*}
+Where:
+\begin{itemize}
+    \item $\haty_i$: $i$-th element of the Softmax function predictions $\haty$
+    \item $y_i$: $i$-th element of the target label vector $y$
+\end{itemize}
+
+\subsubsection*{Categorical Cross-Entropy}
+\begin{equation*}
+    \ELL'(\haty_i) = \frac{\partial\ELL}{\partial \haty_i} = -\frac{1}{n}\frac{y_i}{\haty_i}
+\end{equation*}
+Where:
+\begin{itemize}
+    \item $\haty_i$: $i$-th element of the Softmax function predictions $\haty$
+    \item $y_i$: $i$-th element of the target label vector $y$
+\end{itemize}
+
+\subsubsection*{Softmax Categorical Cross-Entropy}
+\begin{equation*}
+    \ELL'(z_i) = \frac{\partial\ELL}{\partial z_i} = \haty_i - y_i
+\end{equation*}
+Where:
+\begin{itemize}
+    \item $z_i$: $i$-th element of the Softmax function input vector $z$
+    \item $\haty_i$: $i$-th element of the Softmax function predictions $\haty$
+    \item $y_i$: $i$-th element of the target label vector $y$
+\end{itemize}
+
+\pagebreak
+\section*{Optimization}
+
+\subsection*{Stochastic Gradient Descent}
+\begin{equation*}
+    \theta_{t+1} = \theta_t - \eta \nabla\ELL(\theta_t)
+\end{equation*}
+Where:
+\begin{itemize}
+    \item $\theta_t$: value of the parameter at time step $t$
+    \item $\eta$: learning rate
+    \item $\nabla\ELL(\theta_t)$: gradient of the loss function $\ELL$ with respect to parameter $\theta$ at time step $t$
+\end{itemize}
+
+\subsection*{Momentum}
+\begin{align*}
+    v_{t+1}      &= \gamma \cdot v_t + (1-\gamma) \nabla\ELL(\theta_t) \\
+    \theta_{t+1} &= \theta_t - \eta \cdot v_{t+1}
+\end{align*}
+Where:
+\begin{itemize}
+    \item $\theta_t$: value of the parameter at time step $t$
+    \item $\eta$: learning rate
+    \item $\nabla\ELL(\theta_t)$: gradient of the loss function $\ELL$ with respect to parameter $\theta$ at time step $t$
+    \item $v_t$: moving average of the gradients at time step $t$
+    \item $\gamma$: momentum hyperparameter (value between 0 and 1)
+\end{itemize}
+
+\subsection*{AdaGrad}
+\begin{align*}
+    v_{t+1} &= v_t + \nabla\ELL(\theta_t)^2 \\
+    \theta_{t+1} &= \theta_t - \frac{\eta}{\sqrt{v_{t+1}}+\epsilon} \nabla\ELL(\theta_t)
+\end{align*}
+Where:
+\begin{itemize}
+    \item $\theta_t$: value of the parameter at time step $t$
+    \item $\eta$: learning rate
+    \item $\nabla\ELL(\theta_t)$: gradient of the loss function $\ELL$ with respect to parameter $\theta$ at time step $t$
+    \item $v_t$: sum of squares of past gradients up to time step $t$
+    \item $\epsilon$: small constant (usually on the order of $10^8$) to avoid division by zero
+\end{itemize}
+
+\subsection*{AdaDelta}
+\begin{align*}
+    v_{t+1} &= \rho v_t + (1-\rho)\nabla\ELL(\theta_t)^2 \\
+    \Delta\theta_{t+1} &= -\frac{\sqrt{\Delta\theta_t}+\epsilon}{\sqrt{v_{t+1}}+\epsilon} \nabla\ELL(\theta_t) \\
+    \theta_{t+1} &= \theta_t + \Delta\theta_{t+1}
+\end{align*}
+Where:
+\begin{itemize}
+    \item $\theta_t$: value of the parameter at time step $t$
+    \item $\nabla\ELL(\theta_t)$: gradient of the loss function $\ELL$ with respect to parameter $\theta$ at time step $t$
+    \item $v_t$: exponentially decaying moving average of squared gradients at time step $t$
+    \item $\rho$: decay rate for the moving average, typically close to $1$ (e.g. $0.95$)
+    \item $\epsilon$: small constant to avoid division by zero
+    \item $\Delta\theta_{t+1}$: update term for the parameter at time step $t+1$, computed based on the root mean square of the parameter updates
+    \item $\Delta\theta_{t}$: exponentially decaying moving average of squared parameter updates at time step $t$
+\end{itemize}
+
+\subsection*{RMSProp}
+\begin{align*}
+    v_{t+1} &= \rho \, v_{t} + (1-\rho) {\nabla\ELL(\theta_t)}^2 \\
+    \theta_{t+1} &= \theta_{t} - \frac{\eta}{\sqrt{v_{t+1}} + \epsilon} \nabla\ELL(\theta_t)
+\end{align*}
+Where:
+\begin{itemize}
+    \item $\theta_t$: value of the parameter at time step $t$
+    \item $\eta$: learning rate
+    \item $\nabla\ELL(\theta_t)$: gradient of the loss function $\ELL$ with respect to parameter $\theta$ at time step $t$
+    \item $v_t$: exponentially decaying moving average of squared gradients at time step $t$
+    \item $\rho$: decay rate, typically set to a value close to $1$ (e.g. $0.9$)
+    \item $\epsilon$: small constant to avoid division by zero
+\end{itemize}
+
+\subsection*{Adam}
+\begin{align*}
+    m_{t+1} &= \beta_1 m_t + (1-\beta_1) \nabla\ELL(\theta_t) \\
+    v_{t+1} &= \beta_2 v_t + (1-\beta_2) \nabla\ELL(\theta_t)^2\\
+    \hat{m}_{t+1} &= \frac{m_{t+1}}{1-\beta_1^t}\\
+    \hat{v}_{t+1} &= \frac{v_{t+1}}{1-\beta_2^t}\\
+    \theta_{t+1} &= \theta_t - \frac{\eta}{\sqrt{\hat{v}_{t+1}}+\epsilon} \hat{m}_{t+1}
+\end{align*}
+Where:
+\begin{itemize}
+    \item $\theta_t$: value of the parameter at time step $t$
+    \item $\eta$: learning rate
+    \item $\nabla\ELL(\theta_t)$: gradient of the loss function $\ELL$ with respect to parameter $\theta$ at time step $t$
+    \item $m_t$ and $v_t$ are the first and second moments (moving averages) of the gradients at time step $t$
+    \item $\hat{m}_{t+1}$ and $\hat{v}_{t+1}$ are bias-corrected estimates of the first and second moments
+    \item $\beta_1$ and $\beta_2$ are the decay rates for the moving averages, typically close to $1$ (e.g. $0.9$ and $0.999$, respectively)
+    \item $\epsilon$: small constant to avoid division by zero
+\end{itemize}
+
+\pagebreak
+\section*{Regularization}
+
+\subsection*{L1 Regularization}
+L1 regularization adds the sum of the absolute values of the parameters to the loss function. The L1 regularization terms for a parameter $\theta$ (weights or bias) is:
+\begin{equation*}
+    L_{1_\theta} = \lambda \sum_m \abs{\theta_m}
+\end{equation*}
+Where:
+\begin{itemize}
+    \item $L_{1_\theta}$: L1 regularization penalty for parameter $\theta$
+    \item $\lambda$: lambda term that controls the impact of the regularization penalty
+    \item $\theta_m$: $m$-th element in the vector or matrix of parameters $\theta$
+\end{itemize}
+
+The gradient of the L1 regularization term with respect to the parameters is simply the sign of the parameters $\text{sign}(\theta)$. Therefore, the total gradient of the loss function with respect to the parameters of the dense layer are:
+\begin{equation*}
+    L'_{1_\theta} = \frac{\partial\ELL}{\partial \theta_m} = \nabla\theta_m + \lambda\,\text{sign}(\theta_m)
+\end{equation*}
+Where:
+\begin{itemize}
+    \item $\ELL$: loss function
+    \item $\nabla\theta_m$: gradient of the loss function with respect to the $m$-th parameters without regularization
+    \item $\lambda$: lambda term that controls the impact of the regularization penalty
+    \item $\theta_m$: $m$-th element in the vector or matrix of parameters $\theta$
+\end{itemize}
+
+\subsection*{L2 Regularization}
+L2 regularization adds the sum of the squared values of the parameters to the loss function. The L2 regularization term is:
+\begin{equation*}
+    L_{2_\theta} = \lambda \sum_m \abs{\theta_m^2}
+\end{equation*}
+Where:
+\begin{itemize}
+    \item $L_{2_\theta}$: L2 regularization penalty for parameter $\theta$
+    \item $\lambda$: lambda term that controls the impact of the regularization penalty
+    \item $\theta_m$: $m$-th element in the vector or matrix of parameters $\theta$
+\end{itemize}
+
+The gradient of the L2 regularization term with respect to the parameters is simply the sign of the parameters is: 
+\begin{equation*}
+    L'_{2_\theta} = \frac{\partial\ELL}{\partial \theta_m} = \nabla\theta_m + 2\lambda\theta_m
+\end{equation*}
+Where:
+\begin{itemize}
+    \item $\ELL$: loss function
+    \item $\nabla\theta_m$: gradient of the loss function with respect to the $m$-th parameters without regularization
+    \item $\lambda$: lambda term that controls the impact of the regularization penalty
+    \item $\theta_m$: $m$-th element in the vector or matrix of parameters $\theta$
+\end{itemize}
+
+\subsection*{Dropout Layer}
+In a dropout layer, during a forward pass, neurons are randomly dropped out with certain probability $p$ during tyraining. This helps prevent overfitting by forcing the network to learn redundant representations.
+
+A binomial experiment consists of a fixed number $n$ of statistically independent Bernoulli trials, each with a probability of success $p$, and counts the number of successes. A random variable corresponding to a binomial experiment denoted by $B(n,p)$ has a binomial distribution. The probability of exactly $k$ successes in experiment $B(n,p)$ is given by:
+
+\begin{equation*}
+    P(k) = B(n,p) = \binom{n}{k} p^k (1-p)^{n-k}
+\end{equation*}
+Where:
+\begin{itemize}
+    \item $\binom{n}{k}$: binomial coefficient
+    \item $n$: number of trials
+    \item $k$: number of successes
+    \item $p$: probability of success
+    \item $(1-p)$: probability of failure
+\end{itemize}
+
+The Bernoulli distribution is a special case of the binomial distribution with $n=1$ and $k \in {0,1}$:
+\begin{equation*}
+    B(1,p) = p^k (1-p)^{1-k}
+\end{equation*}
+Or equivalently:
+\begin{equation*}
+    B(1,p) = \begin{cases}
+        p   & \text{ if } x=1\\
+        1-p & \text{ if } x=0
+    \end{cases}
+\end{equation*}
+
+Draw a random binary mask from the Bernoulli distribution described above with probability $p$ to generate a sequence of binary values (0s and 1s). Then the formula for the operation of a dropout layer is given as:
+\begin{align*}
+    z = x \cdot B(1,p) \frac{1}{1-p}
+\end{align*}
+Where:
+\begin{itemize}
+    \item $z$: output after dropout
+    \item $x$: input vector
+    \item $B(1,p)$: Bernoulli distribution with probability $p$
+    \item $p$: probability of success
+\end{itemize}
+
+When dropout is applied during training, a fraction $p$ of neuron outputs are randomly set to zero. Thus, the remaining fraction $1-p$ of neuron outputs are scaled up by a factor of $\frac{1}{1-p}$ to compensate for the dropped neurons. During inference, dropout is not applied.
+
+During the backward pass, the activations of the remaining neurons need to be scaled to ensure that the expected output of the layer remains the same during training and inference. The formula for the backwards pass of the dropout layer is given as:
+\begin{equation*}
+    \frac{\partial\ELL}{\partial x} = \frac{\partial\ELL}{\partial\hat{x}} \odot \frac{B(1,p)}{1-p}
+\end{equation*}
+Where:
+\begin{itemize}
+    \item $\odot$ represents element-wise multiplication
+    \item $\ELL$: loss with respect to the output of the dropout layer
+    \item $x$: input to the dropout layer
+    \item $\hat{x}$: output of the dropout layer
+    \item $\frac{\partial\ELL}{\partial x}$: gradient of the loss with respect to the input to the dropout layer
+    \item $\frac{\partial\ELL}{\partial\hat{x}}$: gradient of the loss with respect to the output of the dropout layer
+    \item $\frac{B(1,p)}{1-p}$: binary mask generated during the forward pass, with elements set to 1 for the neurons that are retained and 0 for the neurons that were dropped
+\end{itemize}
+
+\end{document}

@@ -1,22 +1,42 @@
 import numpy
+import inspect
+from abc import ABC, abstractmethod
 
-class Accuracy:
-    def __call__(self, predictions, targets):
-        return self.accuracy(predictions, targets)
+class Accuracy(ABC):
+    def __init__(self):
+        self.acc_sum = 0
+        self.acc_len = 0
     
-    def accuracy(self, predictions, targets):
-        comparisons = self.compare(predictions, targets)
-        accuracy = numpy.mean(comparisons)
+    def __call__(self, c, y):
+        comparisons = self.compare(c, y)
+        acc = numpy.mean(comparisons)
         
-        self.accumulated_sum += numpy.sum(comparisons)
-        self.accumulated_count += len(comparisons)
+        self.acc_sum += numpy.sum(comparisons)
+        self.acc_len += len(comparisons)
         
-        return accuracy
+        return acc
 
-    def accumulated(self):
-        accuracy = self.accumulated_sum / self.accumulated_count
-        return accuracy
-    
-    def reset(self):
-        self.accumulated_sum = 0
-        self.accumulated_count = 0
+    def avg(self):
+        avg_acc = self.acc_sum / self.acc_len
+        self.acc_sum = 0
+        self.acc_len = 0
+        return avg_acc
+
+    @abstractmethod
+    def compare(self, c, y):
+        raise NotImplementedError(f'Must override method \'{inspect.stack()[0][3]}\' in derived class')
+
+
+class Regression(Accuracy):
+    def compare(self, c, y):
+        return numpy.absolute(c - y) < numpy.std(y) / 250
+
+class BinaryCategorical(Accuracy):
+    def compare(self, c, y):
+        return c == y
+
+class Categorical(Accuracy):
+    def compare(self, c, y):
+        if len(y.shape) == 2:
+            y = numpy.argmax(y, axis=1)
+        return c == y

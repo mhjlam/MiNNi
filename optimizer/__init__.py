@@ -1,4 +1,7 @@
-from .adam import Adam
+from .optimizer import Optimizer
+
+from .adadelta import AdaDelta
 from .adagrad import AdaGrad
+from .adam import Adam
 from .rmsprop import RMSProp
-from .momentum import Momentum
+from .sgd import GradientDescent

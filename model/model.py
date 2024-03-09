@@ -2,246 +2,157 @@ import copy
 import numpy
 import pickle
 
-from ..layer import Input
-from ..activation import Softmax
-from ..loss import CategoricalCrossEntropy
-from ..activation import SoftmaxCrossEntropy
+from ..layer import Linear
+from ..layer import Dropout
 
-class Model:
-    def __init__(self):
+class Model():
+    def __init__(self, *, loss=None, optimizer=None, accuracy=None):
         self.layers = []
-        self.softmax_classifier_output = None
-
+        
+        self.loss = loss
+        self.optimizer = optimizer
+        self.accuracy = accuracy
+    
     def add(self, layer):
         self.layers.append(layer)
-
-    def set(self, *, loss=None, optimizer=None, accuracy=None):
-        if loss is not None:
-            self.loss = loss
-        if optimizer is not None:
-            self.optimizer = optimizer
-        if accuracy is not None:
-            self.accuracy = accuracy
-
-    def finalize(self):
-        self.input_layer = Input()
-        n_layers = len(self.layers)
+    
+    def forward(self, X, train=False):
+        # Remove dropout layers during evaluation/prediction
+        train_layers = self.layers.copy()
+        if not train:
+            self.layers[:] = [layer for layer in self.layers if not isinstance(layer, Dropout)]
         
-        self.trainable_layers = []
-        
-        for i in range(n_layers):
-            if i == 0:
-                self.layers[i].prev = self.input_layer
-                self.layers[i].next = self.layers[i+1]
-            elif i < n_layers - 1:
-                self.layers[i].prev = self.layers[i-1]
-                self.layers[i].next = self.layers[i+1]
-            else:
-                self.layers[i].prev = self.layers[i-1]
-                self.layers[i].next = self.loss
-                self.output_activation = self.layers[i]
-        
-            if hasattr(self.layers[i], 'weights'):
-                self.trainable_layers.append(self.layers[i])
-            
-        if self.loss is not None:
-            self.loss.set_trainable_layers(self.trainable_layers)
-        
-        if isinstance(self.layers[-1], Softmax) and \
-           isinstance(self.loss, CategoricalCrossEntropy):
-            self.softmax_classifier_output = SoftmaxCrossEntropy()
-
-    def forward(self, X, training):
-        self.input_layer.forward(X, training)
-        
+        prev_layer = Linear()
+        z = prev_layer.forward(X)
         for layer in self.layers:
-            layer.forward(layer.prev.output, training)
-            
-        return layer.output
-
-    def backward(self, output, y):
-        if self.softmax_classifier_output is not None:
-            self.softmax_classifier_output.backward(output, y)
-            self.layers[-1].dinputs = self.softmax_classifier_output.dinputs
-            for layer in reversed(self.layers[:-1]):
-                layer.backward(layer.next.dinputs)
-        else:
-            self.loss.backward(output, y)
-            for layer in reversed(self.layers):
-                layer.backward(layer.next.dinputs)
-
-    def train(self, X, y, *, epochs=1, batch_size=None, print_freq=1, validation_data=None):
-        self.accuracy.init(y)
-
-        #  Determine training steps based on batch_size
-        train_steps = 1
+            z = layer.forward(z)
+            prev_layer = layer
+        c = prev_layer.activator.predict(z)
         
-        if batch_size is not None:
-            train_steps = len(X) // batch_size
-            train_steps += 1 if train_steps * batch_size < len(X) else 0
+        self.layers = train_layers # Restore training layers
+        return z, c
+    
+    def backward(self, yhat, y):
+        dx = self.loss.backward(yhat, y)
+        dx = self.layers[-1].backward(dx, self.loss)
+        for layer in reversed(self.layers[:-1]):
+            dx = layer.backward(dx)
+        return dx
+    
+    def train(self, X, y, epochs=1, batch_size=None):
+        # Determine batch size and number of steps
+        batch_size = batch_size or len(X)
+        steps = -(len(X) // -batch_size)
         
-        # Training
-        for epoch in range(1, epochs+1):
-            print_epoch = batch_size is None and not epoch % print_freq
-            if batch_size is not None or print_epoch:
-                print(f'epoch: {epoch}')
-            
-            # Reset loss and accuracy for this epoch
-            self.loss.reset()
-            self.accuracy.reset()
-            
-            # Iterate over batch steps
-            for step in range(train_steps):
-                batch_X = X
-                batch_y = y
-
-                # Slice a batch
-                if batch_size is not None:
-                    i0 = step*batch_size
-                    i1 = (step+1)*batch_size
-                    batch_X = X[i0:i1]
-                    batch_y = y[i0:i1]
-            
-                # Forward pass
-                output = self.forward(batch_X, training=True)
+        num_digits_epochs = len(str(epochs))
+        num_digits_steps = len(str(steps))
+        
+        for e in range(1, epochs+1):
+            for t in range(steps):
+                # Batch slice
+                batch_X = X[t*batch_size:(t+1)*batch_size]
+                batch_y = y[t*batch_size:(t+1)*batch_size]
                 
-                # Compute loss
-                data_loss, reg_loss = self.loss(output, batch_y, incl_reg=True)
+                # Forward pass
+                yhat, c = self.forward(batch_X, True)
+                
+                # Loss
+                data_loss = self.loss.data_loss(yhat, batch_y)
+                reg_loss = self.loss.reg_loss(self.layers)
                 loss = data_loss + reg_loss
                 
-                # Compute accuracy
-                predictions = self.output_activation.predictions(output)
-                accuracy = self.accuracy(predictions, batch_y)
+                # Accuracy
+                acc = self.accuracy(c, batch_y)
                 
                 # Backward pass
-                self.backward(output, batch_y)
+                self.backward(yhat, batch_y)
                 
                 # Optimize
-                self.optimizer(self.trainable_layers)
+                self.optimizer.optimize(self.layers)
                 
-                # Batch loss/accuracy
-                print_batch = not step % print_freq or step == train_steps-1
-                if batch_size is not None and print_batch:
-                    print(f'batch: {step:>3},  ' +
-                          f'acc: {accuracy:.3f}, ' +
-                          f'loss: {loss:.3f} (' +
-                          f'data_loss: {data_loss:.3f}, ' +
-                          f'reg_loss: {reg_loss:.3f}), ' +
-                          f'lr: {self.optimizer.current_learning_rate:.20f}')
+                # Show batch statistics every 10% of the time
+                if batch_size != len(X) and (t+1 == steps or t % (steps // 10) == 0):
+                    print(f'[batch: {t:>{num_digits_steps}}] ' +
+                        f'acc: {acc:.3f}, ' +
+                        f'loss: {loss:.3f} (' +
+                        f'data_loss: {data_loss:.3f}, ' +
+                        f'reg_loss: {reg_loss:.3f}), ' +
+                        f'lr: {self.optimizer.eta_t:.20f}')
             
-            # Epoch loss/accuracy
-            epoch_data_loss, epoch_reg_loss = self.loss.accumulated(incl_reg=True)
+            # Epoch statistics
+            epoch_data_loss = self.loss.avg()
+            epoch_reg_loss = self.loss.reg_loss(self.layers)
             epoch_loss = epoch_data_loss + epoch_reg_loss
-            epoch_acc = self.accuracy.accumulated()
-            
-            if batch_size is not None or print_epoch:
-                print(f'[training]   ' +
-                    f'acc: {epoch_acc:.3f}, ' +
-                    f'loss: {epoch_loss:.3f} (' +
-                    f'data_loss: {epoch_data_loss:.3f}, ' +
-                    f'reg_loss: {epoch_reg_loss:.3f}), ' +
-                    f'lr: {self.optimizer.current_learning_rate:.20f}')
-        
-        # Validation
-        if validation_data is not None:
-            self.evaluate(*validation_data, batch_size=batch_size)
+            epoch_acc = self.accuracy.avg()
 
-    def evaluate(self, X_val, y_val, *, batch_size=None):
-        validation_steps = 1
-        if batch_size is not None:
-            validation_steps = len(X_val) // batch_size
-            if validation_steps * batch_size < len(X_val):
-                validation_steps += 1
+            # Print epoch statistics every 10% of the time
+            if e % epochs < 2 or e % (epochs // 10) == 0:
+                print(f'[epoch {e:>{num_digits_epochs}}] ' +
+                      f'loss: {epoch_loss:.3f}, (' +
+                      f'data_loss: {epoch_data_loss:.3f}, ' +
+                      f'reg_loss: {epoch_reg_loss:.3f}), ' +
+                      f'acc: {epoch_acc:.3f}, ' +
+                      f'eta: {self.optimizer.eta_t:.20f}')
+    
+    def evaluate(self, X, y, batch_size=None):
+        # Determine batch size and number of steps
+        batch_size = batch_size or len(X)
+        steps = -(len(X) // -batch_size)
         
-        self.loss.reset()
-        self.accuracy.reset()
-        
-        for step in range(validation_steps):
-            batch_X = X_val
-            batch_y = y_val
-
-            # Slice a batch
-            if batch_size is not None:
-                i0 = step*batch_size
-                i1 = (step+1)*batch_size
-                batch_X = X_val[i0:i1]
-                batch_y = y_val[i0:i1]
+        for t in range(steps):
+            # Batch slice
+            batch_X = X[t*batch_size:(t+1)*batch_size]
+            batch_y = y[t*batch_size:(t+1)*batch_size]
             
             # Forward pass
-            output = self.forward(batch_X, training=False)
+            yhat, c = self.forward(batch_X)
             
-            # Compute loss
-            self.loss(output, batch_y)
+            # Batch loss
+            self.loss.data_loss(yhat, batch_y)
             
-            # Compute accuracy
-            predictions = self.output_activation.predictions(output)
-            self.accuracy(predictions, batch_y)
+            # Batch accuracy
+            self.accuracy(c, batch_y)
         
         # Validation loss/accuracy
-        validation_loss = self.loss.accumulated()
-        validation_acc = self.accuracy.accumulated()
+        val_loss = self.loss.avg()
+        val_acc = self.accuracy.avg()
         
         print(f'[validation] ' +
-                f'acc: {validation_acc:.3f}, ' +
-                f'loss: {validation_loss:.3f}')
+              f'loss: {val_loss:.3f}, ' +
+              f'acc: {val_acc:.3f}')
     
-    def predict(self, X, *, batch_size=None):
-        prediction_steps = 1
-        if batch_size is not None:
-            prediction_steps = len(X) // batch_size
-            if prediction_steps * batch_size < len(X):
-                prediction_steps += 1
+    def predict(self, X, batch_size=None):
+        # Determine batch and step size
+        batch_size = batch_size or len(X)
+        steps = -(len(X) // -batch_size)
         
-        output = []
-        for step in range(prediction_steps):
-            batch_X = X
-            if batch_size is not None:
-                batch_X = X[step*batch_size:(step+1)*batch_size]
+        yhat = []
+        for t in range(steps):
+            batch_X = X[t*batch_size:(t+1)*batch_size]
+            batch_yhat = self.forward(batch_X)[0]
+            yhat.append(batch_yhat)
         
-            batch_output = self.forward(batch_X, training=False)
-            output.append(batch_output)
-        
-        # Stack arrays and return
-        return numpy.vstack(output)
-
-    def get_parameters(self):
-        parameters = []
-        for layer in self.trainable_layers:
-            parameters.append(layer.get_parameters())
-        return parameters
-
-    def set_parameters(self, parameters):
-        for params, layer in zip(parameters, self.trainable_layers):
-            layer.set_parameters(*params)
-
-    def save_parameters(self, path):
-        with open(path, 'wb') as f:
-            pickle.dump(self.get_parameters(), f)
-        
-    def load_parameters(self, path):
-        with open(path, 'rb') as f:
-            self.set_parameters(pickle.load(f))
-
+        yhat = numpy.vstack(yhat)
+        yhat = self.layers[-1].activator.predict(yhat)
+        return yhat
+    
     def save(self, path):
         model = copy.deepcopy(self)
         
-        # Reset accumulated values
-        model.loss.reset()
-        model.accuracy.reset()
+        self.loss.__init__()
+        self.accuracy.__init__()
         
-        # Remove data from input layer and gradients from loss object
-        model.input_layer.__dict__.pop('output', None)
-        model.loss.__dict__.pop('dinputs', None)
-        
-        # Remove layer inputs, output, and dinputs
+        # Remove all properties except weights, biases, and regularization terms
         for layer in model.layers:
-            for property in ['inputs', 'output', 'dinputs', 'dweights', 'dbiases']:
-                layer.__dict__.pop(property, None)
+            layer.__dict__.pop("x", None)
+            layer.__dict__.pop("z", None)
+            layer.__dict__.pop("dx", None)
+            layer.__dict__.pop("dW", None)
+            layer.__dict__.pop("db", None)
         
-        # Save model to binary file
         with open(path, 'wb') as f:
             pickle.dump(model, f)
-
+    
     @staticmethod
     def load(path):
         with open(path, 'rb') as f:

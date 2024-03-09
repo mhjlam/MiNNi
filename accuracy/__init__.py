@@ -1,3 +1,4 @@
 from .accuracy import Accuracy
-from .regression import Regression
-from .categorical import Categorical
+from .accuracy import Regression
+from .accuracy import Categorical
+from .accuracy import BinaryCategorical

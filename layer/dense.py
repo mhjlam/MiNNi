@@ -1,51 +1,52 @@
 import numpy
-
 from .layer import Layer
 
+from ..loss import SoftmaxLoss
+from ..activator import Softmax
+from ..activator import Rectifier
+from ..regularizer import ElasticNet
+from ..initializer import Random
+
 class Dense(Layer):
-    def __init__(self, n_inputs, n_neurons, weight_scale=0.01,
-                 weight_regularizer_l1=0, weight_regularizer_l2=0,
-                 bias_regularizer_l1=0, bias_regularizer_l2=0):
-        # Initialize weights and biases
-        self.weights = weight_scale * numpy.random.randn(n_inputs, n_neurons)
-        self.biases = numpy.zeros((1, n_neurons))
+    def __init__(self, F_in, F_out, 
+                 initializer=Random(), 
+                 activator=Rectifier(), 
+                 regularizer=ElasticNet()):
         
-        # Set regularization strength
-        self.weight_regularizer_l1 = weight_regularizer_l1
-        self.weight_regularizer_l2 = weight_regularizer_l2
-        self.bias_regularizer_l1 = bias_regularizer_l1
-        self.bias_regularizer_l2 = bias_regularizer_l2
+        self.W = initializer.weights(F_in, F_out)
+        self.b = initializer.biases(F_in, F_out)
+        
+        self.mW = numpy.zeros_like(self.W)
+        self.mb = numpy.zeros_like(self.b)
+        self.vW = numpy.zeros_like(self.W)
+        self.vb = numpy.zeros_like(self.b)
+        
+        self.activator = activator
+        self.regularizer = regularizer
     
-    def forward(self, inputs, training):
-        self.inputs = inputs
-        self.output = numpy.dot(inputs, self.weights) + self.biases
-        return self.output
+    def forward(self, x):
+        self.x = x
+        
+        # Forward pass of dense layer
+        z = numpy.dot(x, self.W) + self.b
+        
+        # Forward pass of activator
+        return self.activator.forward(z)
+    
+    def backward(self, dz, loss=None):
+        if isinstance(self.activator, Softmax) and isinstance(loss, SoftmaxLoss):
+            pass # Skip activator when using SoftmaxLoss
+        elif self.activator:
+            # Backward pass of activator
+            dz = self.activator.backward(dz)
+        
+        # Backward pass of dense layer
+        self.dx = numpy.dot(dz, self.W.T)
+        self.dW = numpy.dot(self.x.T, dz)
+        self.db = numpy.sum(dz, axis=0, keepdims=True)
 
-    def backward(self, dvalues):
-        # Gradients on parameters
-        self.dweights = numpy.dot(self.inputs.T, dvalues)
-        self.dbiases = numpy.sum(dvalues, axis=0, keepdims=True)
-
-        # Gradients on regularization
-        if self.weight_regularizer_l1 > 0:
-            dL1 = numpy.ones_like(self.weights)
-            dL1[self.weights < 0] = -1
-            self.dweights += self.weight_regularizer_l1 * dL1
-        if self.bias_regularizer_l1 > 0:
-            dL1 = numpy.ones_like(self.biases)
-            dL1[self.biases < 0] = -1
-            self.dbiases += self.bias_regularizer_l1 * dL1
-        if self.weight_regularizer_l2 > 0:
-            self.dweights += 2 * self.weight_regularizer_l2 * self.weights
-        if self.bias_regularizer_l2 > 0:
-            self.dbiases += 2 * self.bias_regularizer_l2 * self.biases
-
-        # Gradient on values
-        self.dinputs = numpy.dot(dvalues, self.weights.T)
-
-    def get_parameters(self):
-        return self.weights, self.biases
-
-    def set_parameters(self, weights, biases):
-        self.weights = weights
-        self.biases = biases
+        # Regularization
+        self.dW += self.regularizer(self.W)
+        self.db += self.regularizer(self.b)
+        
+        return self.dx

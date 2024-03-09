@@ -1,26 +1,31 @@
+import inspect
 from abc import ABC, abstractmethod
 
+from ..layer import Dense
+from ..layer import Linear
+
 class Optimizer(ABC):
-    def __init__():
+    def __init__(self):
         pass
     
     def __call__(self, layers):
-        self.update(layers)
+        self.optimize(layers)
     
     @abstractmethod
     def pre_update(self):
-        pass
+        raise NotImplementedError(f'Must override method \'{inspect.stack()[0][3]}\' in derived class')
     
     @abstractmethod
-    def update_params(self, layer):
-        pass
-
+    def update(self, layer):
+        raise NotImplementedError(f'Must override method \'{inspect.stack()[0][3]}\' in derived class')
+    
     @abstractmethod
     def post_update(self):
-        pass
-
-    def update(self, layers):
+        raise NotImplementedError(f'Must override method \'{inspect.stack()[0][3]}\' in derived class')
+    
+    def optimize(self, layers):
         self.pre_update()
         for layer in layers:
-            self.update_params(layer)
+            if isinstance(layer, (Dense, Linear)):
+                self.update(layer)
         self.post_update()

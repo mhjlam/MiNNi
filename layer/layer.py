@@ -1,13 +1,26 @@
-from abc import ABC, abstractmethod
+import abc
+import numpy
+import inspect
 
-class Layer(ABC):
-    def __init__(self):
-        pass
+from ..initializer import Zero
+
+class Layer(abc.ABC):
+    def __init__(self, F_in, F_out, initializer=Zero(), activator=None, regularizer=None):
+        self.W = initializer.weights(F_in, F_out)
+        self.b = initializer.biases(F_in, F_out)
+        
+        self.mW = numpy.zeros_like(self.W)
+        self.mb = numpy.zeros_like(self.b)
+        self.vW = numpy.zeros_like(self.W)
+        self.vb = numpy.zeros_like(self.b)
+        
+        self.activator = activator
+        self.regularizer = regularizer
     
-    @abstractmethod
-    def forward(self, inputs):
-        raise NotImplementedError('Must override method \'forward\' in derived class')
-    
-    @abstractmethod
-    def backward(self, dvalues):
-        raise NotImplementedError('Must override method \'backward\' in derived class')
+    @abc.abstractmethod
+    def forward(self, x):
+        raise NotImplementedError(f'Must override method \'{inspect.stack()[0][3]}\' in derived class')
+
+    @abc.abstractmethod
+    def backward(self, dz):
+        raise NotImplementedError(f'Must override method \'{inspect.stack()[0][3]}\' in derived class')

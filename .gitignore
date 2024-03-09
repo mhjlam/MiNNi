@@ -470,7 +470,5 @@ TSWLatexianTemp*
 #*Notes.bib
 
 # Custom
-examples/control.py
-assets/fashion_mnist_images/
-examples/fashion_mnist.snnp
-examples/fashion_mnist.snnm
+example/mnist_fashion_dataset/
+example/mnist_fashion.mnnm

@@ -167,7 +167,7 @@ def mnist_fashion_test(Xt, yt):
         if j != yt[i]: failures += 1
     print(f'Failures: {failures}')
     
-def mnist_fashion_predict(image, show=False):
+def mnist_fashion_predict(Xt, yt, image, show=False):
     image_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), image)
     image_data = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE) # Grayscale
     image_data = cv2.resize(image_data, (28,28)) # Resize 
@@ -180,6 +180,8 @@ def mnist_fashion_predict(image, show=False):
         matplotlib.pyplot.show() # Show the image
     
     model = mnn.model.Model.load(MNNM_PATH)
+    model.evaluate(Xt, yt)
+    
     yhat = model.predict(image_data)
     print(f'{image} is predicted as a {MNIST_FASHION_LABELS[yhat[0]]}')
 
@@ -203,5 +205,5 @@ if __name__ == '__main__':
     mnist_fashion_test(Xt, yt)
     
     print('\nClassification (MNIST Fashion predict)')
-    mnist_fashion_predict('tshirt.png')
-    mnist_fashion_predict('pants.png')
+    mnist_fashion_predict(Xt, yt, 'tshirt.png')
+    mnist_fashion_predict(Xt, yt, 'pants.png')

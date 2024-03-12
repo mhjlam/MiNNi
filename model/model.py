@@ -4,32 +4,28 @@ import pickle
 
 from ..layer import Linear
 from ..layer import Dropout
+from ..accuracy import Accuracy
+
+from ..mnn import Metric
 
 class Model():
-    def __init__(self, *, loss=None, optimizer=None, accuracy=None):
+    def __init__(self, *, loss=None, optimizer=None, metric=Metric.MULTICLASS):
         self.layers = []
         
         self.loss = loss
         self.optimizer = optimizer
-        self.accuracy = accuracy
+        self.accuracy = Accuracy(metric)
     
     def add(self, layer):
         self.layers.append(layer)
     
     def forward(self, X, train=False):
-        # Remove dropout layers during evaluation/prediction
-        train_layers = self.layers.copy()
-        if not train:
-            self.layers[:] = [layer for layer in self.layers if not isinstance(layer, Dropout)]
-        
         prev_layer = Linear()
-        z = prev_layer.forward(X)
+        z = prev_layer.forward(X, train)
         for layer in self.layers:
-            z = layer.forward(z)
+            z = layer.forward(z, train)
             prev_layer = layer
-        c = prev_layer.activator.predict(z)
-        
-        self.layers = train_layers # Restore training layers
+        c = prev_layer.activator.predict(z)        
         return z, c
     
     def backward(self, yhat, y):
@@ -139,8 +135,8 @@ class Model():
     def save(self, path):
         model = copy.deepcopy(self)
         
-        self.loss.__init__()
-        self.accuracy.__init__()
+        self.loss.reset_avg()
+        self.accuracy.reset_avg()
         
         # Remove all properties except weights, biases, and regularization terms
         for layer in model.layers:

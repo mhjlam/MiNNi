@@ -18,7 +18,7 @@ class Layer(abc.ABC):
         self.regularizer = regularizer
     
     @abc.abstractmethod
-    def forward(self, x):
+    def forward(self, x, train):
         raise NotImplementedError(f'Must override method \'{inspect.stack()[0][3]}\' in derived class')
 
     @abc.abstractmethod

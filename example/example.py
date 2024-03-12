@@ -102,8 +102,8 @@ def regression():
     X, y = generate_sine_dataset()
     
     model = mnn.model.Model(loss=mnn.loss.MeanSquaredError(),
-                             optimizer=mnn.optimizer.Adam(eta=0.005, beta=1e-3),
-                             accuracy=mnn.accuracy.Regression())
+                            optimizer=mnn.optimizer.Adam(eta=0.005, beta=1e-3),
+                            metric=mnn.Metric.REGRESSION)
     
     rand_scaled = mnn.initializer.Random(scaler=0.1)
     model.add(mnn.layer.Dense(1, 64, rand_scaled, mnn.activator.Rectifier()))
@@ -120,8 +120,8 @@ def logistic_regression():
     yt = yt.reshape(-1, 1)
     
     model = mnn.model.Model(loss=mnn.loss.BinaryCrossEntropy(),
-                             optimizer=mnn.optimizer.Adam(beta=5e-7),
-                             accuracy=mnn.accuracy.BinaryCategorical())
+                            optimizer=mnn.optimizer.Adam(beta=5e-7),
+                            metric=mnn.Metric.BINARY)
     
     model.add(mnn.layer.Dense(2, 64, activator=mnn.activator.Rectifier(), 
                                regularizer=mnn.regularizer.Ridge(5e-4)))
@@ -135,8 +135,7 @@ def classification():
     Xt, yt = generate_spiral_dataset(N=100, C=3)
     
     model = mnn.model.Model(loss=mnn.loss.SoftmaxLoss(),
-                            optimizer=mnn.optimizer.Adam(eta=0.05, beta=5e-5),
-                            accuracy=mnn.accuracy.Categorical())
+                            optimizer=mnn.optimizer.Adam(eta=0.05, beta=5e-5))
     model.add(mnn.layer.Dense(2, 512, activator=mnn.activator.Rectifier(),
                               regularizer=mnn.regularizer.Ridge(5e-4)))
     model.add(mnn.layer.Dropout(0.1))
@@ -147,8 +146,7 @@ def classification():
 
 def mnist_fashion_train(X, y, Xt, yt):
     model = mnn.model.Model(loss=mnn.loss.SoftmaxLoss(),
-                            optimizer=mnn.optimizer.Adam(beta=1e-3),
-                            accuracy=mnn.accuracy.Categorical())
+                            optimizer=mnn.optimizer.Adam(beta=1e-3))
     model.add(mnn.layer.Dense(X.shape[1], 128, activator=mnn.activator.Rectifier()))
     model.add(mnn.layer.Dense(128, 128, activator=mnn.activator.Rectifier()))
     model.add(mnn.layer.Dense(128, 10, activator=mnn.activator.Softmax()))
@@ -167,23 +165,24 @@ def mnist_fashion_test(Xt, yt):
         if j != yt[i]: failures += 1
     print(f'Failures: {failures}')
     
-def mnist_fashion_predict(Xt, yt, image, show=False):
-    image_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), image)
-    image_data = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE) # Grayscale
-    image_data = cv2.resize(image_data, (28,28)) # Resize 
-    image_data = 255 - image_data # Color inversion
-    #image_data = image_data.reshape(-1, 28*28).astype(numpy.float32)
-    image_data = (image_data.reshape(1,-1).astype(numpy.float32) - 127.5) / 127.5
-    
-    if show:
-        matplotlib.pyplot.imshow(image_data.reshape(28,28), cmap='gray')
-        matplotlib.pyplot.show() # Show the image
-    
+def mnist_fashion_predict(Xt, yt, images, show=False):
     model = mnn.model.Model.load(MNNM_PATH)
     model.evaluate(Xt, yt)
     
-    yhat = model.predict(image_data)
-    print(f'{image} is predicted as a {MNIST_FASHION_LABELS[yhat[0]]}')
+    for image in images:    
+        image_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), image)
+        image_data = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE) # Grayscale
+        image_data = cv2.resize(image_data, (28,28)) # Resize 
+        image_data = 255 - image_data # Color inversion
+        #image_data = image_data.reshape(-1, 28*28).astype(numpy.float32)
+        image_data = (image_data.reshape(1,-1).astype(numpy.float32) - 127.5) / 127.5
+        
+        if show:
+            matplotlib.pyplot.imshow(image_data.reshape(28,28), cmap='gray')
+            matplotlib.pyplot.show() # Show the image
+    
+        yhat = model.predict(image_data)
+        print(f'{image} is predicted as a {MNIST_FASHION_LABELS[yhat[0]]}')
 
 
 if __name__ == '__main__':
@@ -205,5 +204,4 @@ if __name__ == '__main__':
     mnist_fashion_test(Xt, yt)
     
     print('\nClassification (MNIST Fashion predict)')
-    mnist_fashion_predict(Xt, yt, 'tshirt.png')
-    mnist_fashion_predict(Xt, yt, 'pants.png')
+    mnist_fashion_predict(Xt, yt, ['tshirt.png', 'pants.png'])

@@ -1,4 +1,11 @@
 import numpy
+from enum import Enum
+
+class Metric(Enum):
+    REGRESSION = 1
+    BINARY = 2
+    MULTICLASS = 3
+    #MULTILABEL = 4
 
 def init():
     if not init.done:

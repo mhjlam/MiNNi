@@ -24,7 +24,7 @@ class Dense(Layer):
         self.activator = activator
         self.regularizer = regularizer
     
-    def forward(self, x):
+    def forward(self, x, train):
         self.x = x
         
         # Forward pass of dense layer

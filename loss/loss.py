@@ -35,6 +35,10 @@ class Loss(ABC):
         self.acc_len = 0
         return avg_loss
     
+    def reset_avg(self):
+        self.acc_sum = 0
+        self.acc_len = 0        
+    
     @abstractmethod
     def forward(self, yhat, y):
         raise NotImplementedError(f'Must override method \'{inspect.stack()[0][3]}\' in derived class')

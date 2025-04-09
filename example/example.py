@@ -1,21 +1,26 @@
 import os
 import cv2
+import sys
 import gzip
 import numpy
+import shutil
+import struct
 import urllib.request
 import matplotlib.pyplot
 
-import mnn
-import mnn.accuracy
-import mnn.activator
-import mnn.initializer
-import mnn.layer
-import mnn.loss
-import mnn.model
-import mnn.optimizer
-import mnn.regularizer
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-mnn.init()
+import minni
+import minni.accuracy
+import minni.activator
+import minni.initializer
+import minni.layer
+import minni.loss
+import minni.model
+import minni.optimizer
+import minni.regularizer
+
+minni.init()
 
 MNIST_FASHION_LABELS = {
     0: 'T-shirt/top',
@@ -30,12 +35,14 @@ MNIST_FASHION_LABELS = {
     9: 'Ankle boot'
 }
 
-MNNM_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'mnist_fashion.mnnm')
+MDL_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'mnist_fashion.mdl')
+
 
 def generate_sine_dataset(N=1000):
     X = numpy.arange(N).reshape(-1, 1) / N
     y = numpy.sin(2 * numpy.pi * X).reshape(-1, 1)
     return X, y
+
 
 def generate_spiral_dataset(N, C):
     numpy.random.seed(420)
@@ -49,41 +56,54 @@ def generate_spiral_dataset(N, C):
         y[i] = c
     return X, y
 
-# def load_mnist_fashion_dataset(set='train'): #t10k
-#     dir_path = os.path.dirname(os.path.realpath(__file__))
-    
-#     X_path = os.path.join(dir_path, f'{set}-images-idx3-ubyte.gz')
-#     y_path = os.path.join(dir_path, f'{set}-labels-idx1-ubyte.gz')
-    
-#     if not os.path.exists(X_path):
-#         urllib.request.urlretrieve(f'http://fashion-mnist.s3-website.eu-central-1.amazonaws.com/{set}-images-idx3-ubyte.gz', X_path)
-#     if not os.path.exists(y_path):
-#         urllib.request.urlretrieve(f'http://fashion-mnist.s3-website.eu-central-1.amazonaws.com/{set}-labels-idx1-ubyte.gz', y_path)
-    
-#     with gzip.open(y_path, 'rb') as f:
-#         y = numpy.frombuffer(f.read(), dtype=numpy.uint8, offset=8)
-    
-#     with gzip.open(X_path, 'rb') as f:
-#         X = numpy.frombuffer(f.read(), dtype=numpy.uint8, offset=16).reshape(-1, 28*28)
 
-#     return X, y
+def read_mnist_fashion_dataset(set='train'): # or t10k
+    image_set_file = f'{set}-images-idx3-ubyte.gz'
+    label_set_file = f'{set}-labels-idx1-ubyte.gz'
 
-def load_mnist_fashion_dataset(set='train'):
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    set_path = os.path.join(dir_path, 'mnist_fashion_dataset', set)
+    mnist_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'fashion_mnist')
+    images_gz = os.path.join(mnist_folder, image_set_file)
+    labels_gz = os.path.join(mnist_folder, label_set_file)
+    
+    if not os.path.exists(mnist_folder):
+        os.makedirs(mnist_folder, exist_ok=True)
+    
+    # Download the dataset zips if it does not exist
+    if not os.path.exists(image_set_file):
+        if not os.path.exists(images_gz):
+            urllib.request.urlretrieve(
+                f'http://fashion-mnist.s3-website.eu-central-1.amazonaws.com/{set}-images-idx3-ubyte.gz', 
+                images_gz)
+    
+    if not os.path.exists(label_set_file):
+        if not os.path.exists(labels_gz):
+            urllib.request.urlretrieve(
+                f'http://fashion-mnist.s3-website.eu-central-1.amazonaws.com/{set}-labels-idx1-ubyte.gz', 
+                labels_gz)
+    
     X = []
     y = []
-    for label in os.listdir(set_path):
-        for file in os.listdir(os.path.join(set_path, label)):
-            image = cv2.imread(os.path.join(set_path, label, file), cv2.IMREAD_UNCHANGED)
-            X.append(image)
-            y.append(label)
-    return numpy.array(X), numpy.array(y).astype('uint8')
+    
+    with gzip.open(images_gz, 'rb') as f:
+        # Read the first 16 bytes (magic number, count, rows, cols)
+        _, num, rows, cols = struct.unpack('>IIII', f.read(16))
+        
+        # Read the image data (one byte per pixel)
+        X = numpy.frombuffer(f.read(), dtype=numpy.uint8).reshape(num, rows, cols)
+    
+    with gzip.open(labels_gz, 'rb') as f:
+        # Read the first 8 bytes (magic number and number of labels)
+        _, num = struct.unpack('>II', f.read(8))
+        
+        # Read the rest as label data (one byte per label)
+        y = numpy.frombuffer(f.read(), dtype=numpy.uint8)
+
+    return X, y
 
 
 def preprocess_mnist_fashion_dataset():
-    X, y = load_mnist_fashion_dataset('train')
-    Xt, yt = load_mnist_fashion_dataset('test')
+    X, y = read_mnist_fashion_dataset('train')
+    Xt, yt = read_mnist_fashion_dataset('t10k')
     
     # Shuffle training dataset
     keys = numpy.array(range(X.shape[0]))
@@ -101,14 +121,14 @@ def preprocess_mnist_fashion_dataset():
 def regression():
     X, y = generate_sine_dataset()
     
-    model = mnn.model.Model(loss=mnn.loss.MeanSquaredError(),
-                            optimizer=mnn.optimizer.Adam(eta=0.005, beta=1e-3),
-                            metric=mnn.Metric.REGRESSION)
+    model = minni.model.Model(loss=minni.loss.MeanSquaredError(),
+                            optimizer=minni.optimizer.Adam(eta=0.005, beta=1e-3),
+                            metric=minni.Metric.REGRESSION)
     
-    rand_scaled = mnn.initializer.Random(scaler=0.1)
-    model.add(mnn.layer.Dense(1, 64, rand_scaled, mnn.activator.Rectifier()))
-    model.add(mnn.layer.Dense(64, 64, rand_scaled, mnn.activator.Rectifier()))
-    model.add(mnn.layer.Dense(64, 1, rand_scaled, mnn.activator.Linear()))
+    rand_scaled = minni.initializer.Random(scaler=0.1)
+    model.add(minni.layer.Dense(1, 64, rand_scaled, minni.activator.Rectifier()))
+    model.add(minni.layer.Dense(64, 64, rand_scaled, minni.activator.Rectifier()))
+    model.add(minni.layer.Dense(64, 1, rand_scaled, minni.activator.Linear()))
     
     model.train(X, y, epochs=10000)
 
@@ -119,13 +139,13 @@ def logistic_regression():
     y = y.reshape(-1, 1)
     yt = yt.reshape(-1, 1)
     
-    model = mnn.model.Model(loss=mnn.loss.BinaryCrossEntropy(),
-                            optimizer=mnn.optimizer.Adam(beta=5e-7),
-                            metric=mnn.Metric.BINARY)
+    model = minni.model.Model(loss=minni.loss.BinaryCrossEntropy(),
+                            optimizer=minni.optimizer.Adam(beta=5e-7),
+                            metric=minni.Metric.BINARY)
     
-    model.add(mnn.layer.Dense(2, 64, activator=mnn.activator.Rectifier(), 
-                               regularizer=mnn.regularizer.Ridge(5e-4)))
-    model.add(mnn.layer.Dense(64, 1, activator=mnn.activator.Sigmoid()))
+    model.add(minni.layer.Dense(2, 64, activator=minni.activator.Rectifier(), 
+                               regularizer=minni.regularizer.Ridge(5e-4)))
+    model.add(minni.layer.Dense(64, 1, activator=minni.activator.Sigmoid()))
     
     model.train(X, y, epochs=10000)
     model.evaluate(Xt, yt)
@@ -134,29 +154,29 @@ def classification():
     X, y = generate_spiral_dataset(N=1000, C=3)
     Xt, yt = generate_spiral_dataset(N=100, C=3)
     
-    model = mnn.model.Model(loss=mnn.loss.SoftmaxLoss(),
-                            optimizer=mnn.optimizer.Adam(eta=0.05, beta=5e-5))
-    model.add(mnn.layer.Dense(2, 512, activator=mnn.activator.Rectifier(),
-                              regularizer=mnn.regularizer.Ridge(5e-4)))
-    model.add(mnn.layer.Dropout(0.1))
-    model.add(mnn.layer.Dense(512, 3, activator=mnn.activator.Softmax()))
+    model = minni.model.Model(loss=minni.loss.SoftmaxLoss(),
+                            optimizer=minni.optimizer.Adam(eta=0.05, beta=5e-5))
+    model.add(minni.layer.Dense(2, 512, activator=minni.activator.Rectifier(),
+                              regularizer=minni.regularizer.Ridge(5e-4)))
+    model.add(minni.layer.Dropout(0.1))
+    model.add(minni.layer.Dense(512, 3, activator=minni.activator.Softmax()))
     
     model.train(X, y, epochs=10000)
     model.evaluate(Xt, yt)
 
 def mnist_fashion_train(X, y, Xt, yt):
-    model = mnn.model.Model(loss=mnn.loss.SoftmaxLoss(),
-                            optimizer=mnn.optimizer.Adam(beta=1e-3))
-    model.add(mnn.layer.Dense(X.shape[1], 128, activator=mnn.activator.Rectifier()))
-    model.add(mnn.layer.Dense(128, 128, activator=mnn.activator.Rectifier()))
-    model.add(mnn.layer.Dense(128, 10, activator=mnn.activator.Softmax()))
+    model = minni.model.Model(loss=minni.loss.SoftmaxLoss(),
+                            optimizer=minni.optimizer.Adam(beta=1e-3))
+    model.add(minni.layer.Dense(X.shape[1], 128, activator=minni.activator.Rectifier()))
+    model.add(minni.layer.Dense(128, 128, activator=minni.activator.Rectifier()))
+    model.add(minni.layer.Dense(128, 10, activator=minni.activator.Softmax()))
     
     model.train(X, y, epochs=10, batch_size=128)
     model.evaluate(Xt, yt)
-    model.save(MNNM_PATH)
+    model.save(MDL_PATH)
 
 def mnist_fashion_test(Xt, yt):
-    model = mnn.model.Model.load(MNNM_PATH)
+    model = minni.model.Model.load(MDL_PATH)
     model.evaluate(Xt, yt)
     
     # Predict on the test dataset
@@ -166,7 +186,7 @@ def mnist_fashion_test(Xt, yt):
     print(f'Failures: {failures}')
     
 def mnist_fashion_predict(Xt, yt, images, show=False):
-    model = mnn.model.Model.load(MNNM_PATH)
+    model = minni.model.Model.load(MDL_PATH)
     model.evaluate(Xt, yt)
     
     for image in images:    
@@ -183,7 +203,6 @@ def mnist_fashion_predict(Xt, yt, images, show=False):
     
         yhat = model.predict(image_data)
         print(f'{image} is predicted as a {MNIST_FASHION_LABELS[yhat[0]]}')
-
 
 if __name__ == '__main__':
     print('Regression (sine)')

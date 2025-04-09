@@ -470,5 +470,5 @@ TSWLatexianTemp*
 #*Notes.bib
 
 # Custom
-example/mnist_fashion_dataset/
-example/mnist_fashion.mnnm
+example/fashion_mnist/
+example/mnist_fashion.mdl

@@ -46,13 +46,13 @@ model.add(minni.layer.Dense(128, 10, activator=minni.activator.Softmax()))
 
 model.train(X, y, epochs=10, batch_size=128)
 model.evaluate(Xt, yt)
-model.save('model.mnnm')
+model.save('model.mdl')
 ```
 
 #### Testing
 
 ```python
-model = minni.model.Model.load('model.mnnm')
+model = minni.model.Model.load('model.mdl')
 model.evaluate(Xt, yt)
 
 # Predict on the test dataset
@@ -75,7 +75,7 @@ if show:
     matplotlib.pyplot.imshow(image_data.reshape(28,28), cmap='gray')
     matplotlib.pyplot.show() # Show the image
 
-model = minni.model.Model.load('mnist_fashion.mnnm')
+model = minni.model.Model.load('mnist_fashion.mdl')
 yhat = model.predict(image_data)
 
 print(f'Image is predicted as a {MNIST_FASHION_LABELS[yhat[0]]}')

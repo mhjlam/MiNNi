@@ -16,6 +16,9 @@ class Layer(abc.ABC):
         
         self.activator = activator
         self.regularizer = regularizer
+        
+        self.input_size = F_in
+        self.output_size = F_out
     
     @abc.abstractmethod
     def forward(self, x, train):

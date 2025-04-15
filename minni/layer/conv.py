@@ -13,7 +13,7 @@ class Conv(Layer):
         self.W = initializer.weights((out_channels, in_channels, kernel_size, kernel_size))
         self.b = initializer.biases((out_channels, 1))
 
-    def forward(self, x, train):
+    def forward(self, x, train=False):
         self.x = x
         # Add padding
         x_padded = numpy.pad(x, ((0, 0), (self.padding, self.padding), (self.padding, self.padding), (0, 0)), mode='constant')

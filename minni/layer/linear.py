@@ -4,7 +4,7 @@ class Linear(Layer):
     def __init__(self):
         pass
     
-    def forward(self, x, train):
+    def forward(self, x, train=False):
         return x
 
     def backward(self, dz):

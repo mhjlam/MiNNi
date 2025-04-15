@@ -6,7 +6,7 @@ class MaxPooling(Layer):
         self.pool_size = pool_size
         self.stride = stride
     
-    def forward(self, x, train):
+    def forward(self, x, train=False):
         self.x = x
         out_height = (x.shape[1] - self.pool_size) // self.stride + 1
         out_width = (x.shape[2] - self.pool_size) // self.stride + 1

@@ -9,7 +9,6 @@ from ..accuracy import Accuracy
 class Model():
     def __init__(self, *, loss=None, optimizer=None, metric=Metric.MULTICLASS):
         self.layers = []
-        
         self.loss = loss
         self.optimizer = optimizer
         self.accuracy = Accuracy(metric)
@@ -23,7 +22,7 @@ class Model():
         for layer in self.layers:
             z = layer.forward(z, train)
             prev_layer = layer
-        c = prev_layer.activator.predict(z)        
+        c = prev_layer.activator.predict(z)
         return z, c
     
     def backward(self, yhat, y):
@@ -41,7 +40,7 @@ class Model():
         num_digits_epochs = len(str(epochs))
         num_digits_steps = len(str(steps))
         
-        for e in range(1, epochs+1):
+        for epoch in range(1, epochs+1):
             for t in range(steps):
                 # Batch slice
                 batch_X = X[t*batch_size:(t+1)*batch_size]
@@ -78,10 +77,10 @@ class Model():
             epoch_reg_loss = self.loss.reg_loss(self.layers)
             epoch_loss = epoch_data_loss + epoch_reg_loss
             epoch_acc = self.accuracy.avg()
-
+            
             # Print epoch statistics every 10% of the time
-            if e % epochs < 2 or e % (epochs // 10) == 0:
-                print(f'[Epoch {e:>{num_digits_epochs}}]' +
+            if epoch % epochs < 2 or epoch % (epochs // 10) == 0:
+                print(f'[Epoch {epoch:>{num_digits_epochs}}]' +
                       f'\n\tLoss: {epoch_loss:.3f} (' +
                       f'Data: {epoch_data_loss:.3f}, ' +
                       f'Regularizer: {epoch_reg_loss:.3f}) ' +
@@ -112,7 +111,7 @@ class Model():
         val_acc = self.accuracy.avg()
         
         print(f'[Validation] ' +
-              f'\n\tLoss: {val_loss:.3f}, ' +
+              f'\n\tLoss: {val_loss:.3f}, ' + 
               f'\n\tAccuracy: {val_acc:.3f}')
     
     def predict(self, X, batch_size=None):

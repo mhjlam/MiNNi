@@ -8,23 +8,10 @@ from ..regularizer import ElasticNet
 from ..initializer import Random
 
 class Dense(Layer):
-    def __init__(self, F_in, F_out, 
-                 initializer=Random(), 
-                 activator=Rectifier(), 
-                 regularizer=ElasticNet()):
-        
-        self.W = initializer.weights(F_in, F_out)
-        self.b = initializer.biases(F_in, F_out)
-        
-        self.mW = numpy.zeros_like(self.W)
-        self.mb = numpy.zeros_like(self.b)
-        self.vW = numpy.zeros_like(self.W)
-        self.vb = numpy.zeros_like(self.b)
-        
-        self.activator = activator
-        self.regularizer = regularizer
+    def __init__(self, F_in, F_out, initializer=Random(), activator=Rectifier(), regularizer=ElasticNet()):
+        super().__init__(F_in, F_out, initializer, activator, regularizer)
     
-    def forward(self, x, train):
+    def forward(self, x, train=False):
         self.x = x
         
         # Forward pass of dense layer

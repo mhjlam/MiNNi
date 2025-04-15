@@ -5,4 +5,4 @@ from .dense import Dense
 from .linear import Linear
 from .dropout import Dropout
 from .flatten import Flatten
-from .pooling import MaxPooling
+from .max_pooling import MaxPooling

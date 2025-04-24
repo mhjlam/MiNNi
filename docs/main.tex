@@ -864,6 +864,89 @@ Prediction, or \emph{inference}, is the process of loading a trained model and u
 The output of a trained classification model is an array of \emph{confidence} vectors that contain a confidence metric per class. The highest confidence score points to the \emph{prediction}. With a softmax classifier the predicted class is simply the $\text{argmax}$ of each confidence vector.
 
 
+
+\section{Convolutional neural network}
+
+A \textbf{Convolutional Neural Network} (CNN) is a type of deep neural network designed for processing data with grid-like topology, such as images. Local features like edges, textures, or shapes are extracted by sliding kernels over the image. Spatial patterns are learned through \textbf{convolutional} layers and combined with \textbf{pooling} layers to reduce the spatial dimensions of feature maps while capturing dominant features and making the model more efficient.
+
+\subsection*{Convolutional Layer}
+
+This layer is the backbone of a CNN. Its forward pass applies the \textbf{convolution operation} to the input (image or other feature map), producing a \textbf{feature map} that highlights specific patterns like edges or textures.
+
+The convolution operation involves applying a \textbf{kernel} (or filter) to the input image, which slides over the image and computes the dot product between the kernel and a local region of the image. This results in a feature map that highlights specific patterns or features in the image. Mathematically, the \textbf{convolution} operation can be represented as:
+
+\begin{equation*} S(i,j) = \sum_m \sum_n I(i+m,j+n) \cdot K(m,n) \end{equation*}
+
+where:
+\begin{itemize}
+    \item $S(i,j)$: output feature map at location $(i,j)$.
+    \item $I(i,j)$: pixel value at location $(i,j)$.
+    \item $K(m,n)$: weight of the kernel at location $(m,n)$.
+\end{itemize}
+
+The kernel is a small matrix of weights that is learned during training. The size of the kernel determines the size of the local region being analyzed. Common kernel sizes are $3 \times 3$, $5 \times 5$, or $7 \times 7$ pixels.
+
+In the \textbf{backward pass}, we need to know how much the input to the convolutional layer contributed to the final loss and adjust the kernel so that it leads to less error in the future. This is done by convolving the original layer's input with the gradient of the loss with respect to the output feature map $S(i,j)$:
+
+\begin{equation*}
+\frac{\partial L}{\partial K} = \sum_i \sum_j \frac{\partial L}{\partial S(i,j)} \cdot I(i+m,j+n)
+\end{equation*}
+
+where:
+\begin{itemize}
+    \item $L$: loss function.
+    \item $K$: kernel weights.
+    \item $S(i,j)$: output feature map at location $(i,j)$.
+    \item $I(i+m,j+n)$: input image at location $(i+m,j+n)$.
+\end{itemize}
+
+\subsection*{Pooling Layer}
+
+The \textbf{pooling} layer reduces the spatial dimensions of feature maps while preserving their most important features. This helps to decrease computational complexity and to prevent overfitting. The two most common types of pooling are \textbf{max} pooling and \textbf{average} pooling.
+
+Max pooling selects the maximum value within a region, emphasizing the most prominent features. The output at a given location is the maximum value within the pooling window. Average pooling computes the mean value of the elements in the window, providing a smoother representation. For a pooling window of size $p \times p$, the output can be expressed as:
+
+\begin{equation*}
+P(i,j) = \max_{m,n}^{p} I(i+m,j+n)
+\end{equation*}
+
+where:
+\begin{itemize}
+    \item $P(i,j)$: output feature map at location $(i,j)$.
+    \item $I(i+m,j+n)$: input feature map at location $(i+m,j+n)$.
+    \item $p$: pooling window size.
+    \item $m$: index for the height of the pooling window.
+    \item $n$: index for the width of the pooling window.
+\end{itemize}
+
+During the backward pass, the pooling layer propagates gradients to the input feature map. For max pooling, the gradient is passed only to the input element that had the maximum value in the pooling window. For average pooling, the gradient is distributed equally among all elements in the window. This ensures that the pooling operation contributes to the optimization of the network during training.
+
+\subsection*{Batch Normalization}
+
+\textbf{Batch normalization} is a technique to improve the training of deep neural networks by normalizing the inputs to each layer. This helps to stabilize and accelerate training by reducing internal \textbf{covariate shift}, which occurs when the distribution of inputs to a layer changes during training. Batch normalization reduces sensitivity to weight initialization and acts as a regularizer, allowing for higher learning rates and possibly reducing the need for dropout layers as well.
+
+In convolutional layers, batch normalization is typically applied to the feature maps along the channel dimension, ensuring that each channel is normalized independently.
+
+During the forward pass, the input feature map is normalized by subtracting the batch mean $\mu_B$ and dividing by the batch standard deviation $\sigma_B^2$. It then scales and shifts the normalized values using learnable parameters. It can be mathematically expressed as:
+
+\begin{equation*}
+y = \gamma \frac{x - \mu_B}{\sqrt{\sigma_B^2 + \epsilon}} + \beta
+\end{equation*}
+
+where:
+\begin{itemize}
+    \item $x$: input feature map.
+    \item $\mu_B$: batch mean.
+    \item $\sigma_B^2$: batch variance.
+    \item $\epsilon$: small constant to prevent division by zero.
+    \item $\gamma$: learnable scale parameter.
+    \item $\beta$: learnable shift parameter.
+\end{itemize}
+
+During the backward pass, gradients are computed with respect to input $x$, $\gamma$, and $\beta$, allowing the network to learn the optimal scaling and shifting parameters.
+
+
+
 % TERMINOLOGY
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -963,6 +1046,12 @@ Note that a standard deviation ($\sigma$) is the square root of the variance. It
 Technique used in machine learning for evaluating the performance of a predictive model. It helps to assess how well a model generalizes to new data by partitioning the available dataset into multiple subsets, called folds, and iteratively training and evaluating the model on different combinations of these folds.
 
 The original dataset is randomly partitioned into $K$ equal-sized subsets or folds. The model is trained on $K-1$ folds (the training set), and evaluated on the left-out fold (the validation set) to compute a loss metric. After $K$ iterations, all metrics are combined to obtain a single estimate of the model's performance.
+
+\item[Kernel]
+A kernel is a small matrix of learnable weights used to extract features from input data. It slides over the input (e.g., an image) and performs element-wise multiplication followed by summation, producing a feature map that highlights specific patterns like edges or textures.
+
+\item[Covariate shift]
+Covariate shift occurs when the distribution of the input data during training differs from the distribution during testing or deployment. This mismatch can degrade the model's performance because a network learns patterns based on the training distribution, which may not generalize well to the new data. Techniques like domain adaptation, data augmentation, or normalization can help mitigate this issue.
 
 \end{description}
 
@@ -1318,6 +1407,9 @@ Technique where randomly selected neurons are ignored or "dropped out" during tr
 
 \item[Early Stopping]
 Involves monitoring the model's performance on a separate validation dataset during training and stopping the training process when the validation performance starts to degrade. This prevents the model from overfitting by halting training before it starts to memorize the training data too closely.
+
+\item[Batch normalization]
+Batch normalization is a technique to improve training stability and speed by normalizing layer inputs. It reduces internal covariate shift, making the network less sensitive to weight initialization and allowing higher learning rates. It also acts as a regularizer, potentially reducing the need for dropout. However, it adds computational overhead and complexity, and its effectiveness may vary depending on the task and dataset.
 
 \end{description}
 

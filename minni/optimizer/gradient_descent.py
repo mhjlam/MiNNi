@@ -1,5 +1,6 @@
 from .optimizer import Optimizer
 
+
 class GradientDescent(Optimizer):
     # eta = learning rate
     # beta = decay rate

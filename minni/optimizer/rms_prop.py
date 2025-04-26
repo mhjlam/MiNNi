@@ -1,5 +1,7 @@
 import numpy
+
 from .optimizer import Optimizer
+
 
 class RMSProp(Optimizer):
     def __init__(self, eta=0.001, beta=0.0, rho=0.9):

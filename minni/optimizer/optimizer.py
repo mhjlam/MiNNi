@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from ..layer import Dense
 from ..layer import Linear
 
+
 class Optimizer(ABC):
     def __init__(self):
         pass

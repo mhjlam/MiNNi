@@ -1,6 +1,7 @@
 import inspect
 from abc import ABC, abstractmethod
 
+
 class Regularizer(ABC):
     @abstractmethod
     def __init__(self, lambda_term):

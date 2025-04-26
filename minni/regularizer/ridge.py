@@ -1,8 +1,10 @@
 import numpy
+
 from .regularizer import Regularizer
 
+
 class Ridge(Regularizer): # L2 regularization
-    def __init__(self, lambda_L2):
+    def __init__(self, lambda_L2=0.01):
         self.lambda_L2 = lambda_L2
     
     def backward(self, theta):

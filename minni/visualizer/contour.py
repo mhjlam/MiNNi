@@ -1,12 +1,12 @@
 import numpy
 import matplotlib.pyplot as plt
 
-from . import Visualizer
+from .visualizer import Visualizer
+
 
 class Contour(Visualizer):
     def __init__(self, model, save_path="contour.mp4", interval=10, fps=30, bitrate=3200):
         super().__init__(model, save_path, interval, fps, bitrate)
-
 
     def setup(self):
         self.fig, self.ax = plt.subplots(figsize=(8, 6))
@@ -23,9 +23,7 @@ class Contour(Visualizer):
             self.edge_colors = ["black" if label == middle_class else "white" for label in self.y.flatten()]
             
         self.scatter = self.ax.scatter(self.X[:, 0], self.X[:, 1], 
-                                       c=self.y.flatten(), cmap="RdBu", 
-                                       edgecolor=self.edge_colors, s=50)
-
+            c=self.y.flatten(), cmap="RdBu", edgecolor=self.edge_colors, s=50)
 
     def frame(self, _):
         self.model.train(self.X, self.y, epochs=10)
@@ -42,7 +40,7 @@ class Contour(Visualizer):
         probs = self.model.predict(grid).reshape(xx.shape)
         
         self.ax.contourf(xx, yy, probs, levels=50, cmap="RdBu", alpha=0.6)
-        self.ax.scatter(self.X[:, 0], self.X[:, 1], c=self.y.flatten(), cmap="RdBu", 
-                        edgecolor=self.edge_colors, s=50)
+        self.ax.scatter(self.X[:, 0], self.X[:, 1], 
+            c=self.y.flatten(), cmap="RdBu", edgecolor=self.edge_colors, s=50)
         
         return self.scatter,

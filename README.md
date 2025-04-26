@@ -20,7 +20,7 @@ model.train(X, y, epochs=10000)
 ### Classification (Spiral Data)
 
 ```python
-model = minni.model.Model(loss=minni.loss.SoftmaxLoss(),
+model = minni.model.Model(loss=minni.loss.CrossEntropy(),
                         optimizer=minni.optimizer.Adam(eta=0.05, beta=5e-5),
                         accuracy=minni.accuracy.Categorical())
 model.add(minni.layer.Dense(2, 512, activator=minni.activator.Rectifier(),
@@ -37,7 +37,7 @@ model.evaluate(Xt, yt)
 #### Training
 
 ```python
-model = minni.model.Model(loss=minni.loss.SoftmaxLoss(),
+model = minni.model.Model(loss=minni.loss.CrossEntropy(),
                         optimizer=minni.optimizer.Adam(beta=1e-3),
                         accuracy=minni.accuracy.Categorical())
 model.add(minni.layer.Dense(X.shape[1], 128, activator=minni.activator.Rectifier()))
@@ -46,13 +46,13 @@ model.add(minni.layer.Dense(128, 10, activator=minni.activator.Softmax()))
 
 model.train(X, y, epochs=10, batch_size=128)
 model.evaluate(Xt, yt)
-model.save('model.mdl')
+model.save('model.minni')
 ```
 
 #### Testing
 
 ```python
-model = minni.model.Model.load('model.mdl')
+model = minni.model.Model.load('model.minni')
 model.evaluate(Xt, yt)
 
 # Predict on the test dataset
@@ -75,7 +75,7 @@ if show:
     matplotlib.pyplot.imshow(image_data.reshape(28,28), cmap='gray')
     matplotlib.pyplot.show() # Show the image
 
-model = minni.model.Model.load('mnist_fashion.mdl')
+model = minni.model.Model.load('mnist_fashion.minni')
 yhat = model.predict(image_data)
 
 print(f'Image is predicted as a {MNIST_FASHION_LABELS[yhat[0]]}')

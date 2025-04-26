@@ -1,5 +1,7 @@
 import numpy
+
 from .loss import Loss
+
 
 class MeanAbsoluteError(Loss):
     def forward(self, yhat, y):

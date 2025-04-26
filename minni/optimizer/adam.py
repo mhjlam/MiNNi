@@ -1,5 +1,7 @@
 import numpy
+
 from .optimizer import Optimizer
+
 
 class Adam(Optimizer):
     def __init__(self, eta=0.001, beta=0.0, beta_1=0.9, beta_2=0.999):

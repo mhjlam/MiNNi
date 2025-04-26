@@ -1,7 +1,8 @@
 import numpy
 import matplotlib.pyplot as plt
 
-from . import Visualizer
+from .visualizer import Visualizer
+
 
 class Plot(Visualizer):
     def __init__(self, model, save_path="plot.mp4", interval=10, fps=30, bitrate=3200):

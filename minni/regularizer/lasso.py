@@ -1,5 +1,7 @@
 import numpy
+
 from .regularizer import Regularizer
+
 
 class Lasso(Regularizer): # L1 regularization
     def __init__(self, lambda_L1):

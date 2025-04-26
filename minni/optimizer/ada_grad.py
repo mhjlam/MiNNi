@@ -1,5 +1,7 @@
 import numpy
+
 from .optimizer import Optimizer
+
 
 class AdaGrad(Optimizer):
     def __init__(self, eta=1.0, beta=0.0):

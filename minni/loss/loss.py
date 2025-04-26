@@ -2,13 +2,14 @@ import numpy
 import inspect
 from abc import ABC, abstractmethod
 
+
 class Loss(ABC):
     def __init__(self):
         self.acc_sum = 0
         self.acc_len = 0
     
-    def __call__(self, yhat, y):
-        return self.data_loss(yhat, y), self.reg_loss()
+    def __call__(self, yhat, y, layers):
+        return self.data_loss(yhat, y), self.reg_loss(layers)
     
     def data_loss(self, yhat, y):
         sample_loss = self.forward(yhat, y)
@@ -23,7 +24,7 @@ class Loss(ABC):
         reg_loss = 0
         
         for layer in layers:
-            if layer.regularizer:
+            if hasattr(layer, 'regularizer') and layer.regularizer:
                 reg_loss += layer.regularizer.loss(layer.W)
                 reg_loss += layer.regularizer.loss(layer.b)
         

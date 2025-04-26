@@ -1,8 +1,9 @@
-import numpy as np
+import numpy
 import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation, FFMpegWriter
+import matplotlib.animation as animation
 
 from .visualizer import Visualizer
+
 
 class WeightVisualizer(Visualizer):
     def __init__(self, model, save_path=None, interval=100, fps=30, bitrate=1800):
@@ -21,7 +22,6 @@ class WeightVisualizer(Visualizer):
         self.lines = []
 
     def _initialize_plot(self):
-        """Initialize the plot with nodes and connections."""
         self.ax.clear()
         self.ax.axis('off')  # Ensure axes are off
         self.ax.set_xticks([])  # Remove x-axis ticks
@@ -35,7 +35,7 @@ class WeightVisualizer(Visualizer):
         self.lines = []
 
         num_layers = len(self.model.layers) + 1  # Include input layer
-        layer_positions = np.linspace(0.1, 0.9, num_layers)  # Horizontal positions of layers
+        layer_positions = numpy.linspace(0.1, 0.9, num_layers)  # Horizontal positions of layers
 
         for layer_idx in range(num_layers):
             if layer_idx == 0:
@@ -49,7 +49,7 @@ class WeightVisualizer(Visualizer):
                 nodes_to_display = list(range(num_nodes))
 
             # Assign vertical positions based on node index (top to bottom)
-            node_positions = np.linspace(0.9, 0.1, num_nodes)  # Top to bottom
+            node_positions = numpy.linspace(0.9, 0.1, num_nodes)  # Top to bottom
             displayed_positions = [node_positions[node_id] for node_id in nodes_to_display]
             self.node_positions.append((layer_positions[layer_idx], displayed_positions))
 
@@ -75,14 +75,11 @@ class WeightVisualizer(Visualizer):
                 prev_x, prev_y_positions = self.node_positions[layer_idx - 1]
                 for i, y in enumerate(displayed_positions):
                     for j, py in enumerate(prev_y_positions):
-                        line, = self.ax.plot(
-                            [prev_x, layer_positions[layer_idx]], [py, y],
-                            color='gray', alpha=0.5, linewidth=1
-                        )
+                        line, = self.ax.plot([prev_x, layer_positions[layer_idx]], [py, y], 
+                                             color='gray', alpha=0.5, linewidth=1)
                         self.lines.append(line)
 
     def _update_weights(self):
-        """Update the weights in the plot."""
         for layer_idx, layer in enumerate(self.model.layers):
             num_nodes = layer.W.shape[1]
             if num_nodes > 5:
@@ -90,15 +87,13 @@ class WeightVisualizer(Visualizer):
             else:
                 nodes_to_display = list(range(num_nodes))
 
-            _, y_positions = self.node_positions[layer_idx + 1]  # Skip input layer
             for i, node_id in enumerate(nodes_to_display):
-                weight_sum = np.sum(layer.W[:, node_id])
+                weight_sum = numpy.sum(layer.W[:, node_id])
                 color_intensity = min(1.0, max(0.0, (weight_sum + 1) / 2))  # Normalize to [0, 1]
                 self.texts[layer_idx * len(nodes_to_display) + i].set_text(f'{node_id}\n{weight_sum:.2f}')
                 self.texts[layer_idx * len(nodes_to_display) + i].set_color(plt.cm.viridis(color_intensity))
 
     def record(self, X, y, epochs):
-        """Record the animation."""
         self._initialize_plot()
 
         def update(frame):
@@ -106,10 +101,10 @@ class WeightVisualizer(Visualizer):
             self._update_weights()
             return self.texts + self.lines
 
-        ani = FuncAnimation(self.fig, update, frames=epochs, interval=self.interval, blit=True)
+        ani = animation.FuncAnimation(self.fig, update, frames=epochs, interval=self.interval, blit=True)
 
         if self.save_path:
-            writer = FFMpegWriter(fps=self.fps, bitrate=self.bitrate)
+            writer = animation.FFMpegWriter(fps=self.fps, bitrate=self.bitrate)
             ani.save(self.save_path, writer=writer)
         else:
             plt.show()

@@ -1,4 +1,5 @@
-from matplotlib.animation import FFMpegWriter, FuncAnimation
+import matplotlib.animation as animation
+
 
 class Visualizer:
     def __init__(self, model, save_path="animation.mp4", interval=10, fps=30, bitrate=3200):
@@ -17,12 +18,12 @@ class Visualizer:
         self.X = X
         self.y = y
         self.epochs = epochs
-        self.writer = FFMpegWriter(fps=self.fps, bitrate=self.bitrate)
+        self.writer = animation.FFMpegWriter(fps=self.fps, bitrate=self.bitrate)
         
         self.setup()
         
         # Create and save animation
-        ani = FuncAnimation(self.fig, self.frame, frames=epochs, interval=self.interval, blit=False)
+        ani = animation.FuncAnimation(self.fig, self.frame, frames=epochs, interval=self.interval, blit=False)
         ani.save(self.save_path, writer=self.writer)
         
         print(f"Animation saved to {self.save_path}")

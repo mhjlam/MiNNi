@@ -470,5 +470,5 @@ TSWLatexianTemp*
 #*Notes.bib
 
 # Custom
-example/_input/*.gz
+example/_input/FashionMNIST/
 example/_output/

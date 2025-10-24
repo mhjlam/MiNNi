@@ -31,6 +31,6 @@ def main():
     model.add(minni.layer.Dense(256, 256, activator=minni.activator.Rectifier()))
     model.add(minni.layer.Dense(256, 1, activator=minni.activator.Linear()))
 
-    visualizer = minni.visualizer.Plot(model, save_path=os.path.join(example.OUTPUT_DIR, "regression_sine.mp4"), 
+    visualizer = minni.visualizer.Plot(model, save_path=os.path.join(example.OUTPUT_DIR, "regression_sine-fit.mp4"), 
                                        interval=25, fps=30, bitrate=3200)
     visualizer.record(X, y, epochs=1000)

@@ -117,7 +117,7 @@ def main():
         predictions = model(test_images)
         predicted_classes = torch.argmax(predictions, dim=1)
 
-    labels = list(example.FMNIST_LABELS.values())
+    labels = example.FMNIST_LABELS
 
     # Display predictions
     for i in range(10):

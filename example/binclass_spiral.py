@@ -40,7 +40,7 @@ def main():
     model.add(minni.layer.Dense(64, 1, activator=minni.activator.Sigmoid()))
 
     # Train the model with animated plot
-    visualizer = minni.visualizer.Contour(model, save_path=os.path.join(example.OUTPUT_DIR, "binclass_spiral.mp4"), 
+    visualizer = minni.visualizer.Contour(model, save_path=os.path.join(example.OUTPUT_DIR, "binclass_spiral-fit.mp4"), 
                                           interval=25, fps=30, bitrate=3200)
     
     visualizer.record(X, y, epochs=1000)

@@ -191,7 +191,7 @@ def evaluate(Xt, yt, plot=False):
     if plot:
         # Save confusion matrix to a file
         cm = metrics.confusion_matrix(yt, y_hat)
-        disp = metrics.ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=list(example.FMNIST_LABELS.values()))
+        disp = metrics.ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=example.FMNIST_LABELS)
         disp.plot(cmap="viridis", xticks_rotation=45)
         plt.title("Confusion Matrix")
 

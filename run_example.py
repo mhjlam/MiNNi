@@ -10,18 +10,18 @@ OUTPUT_DIR = os.path.join(EXAMPLE_DIR, "_output")
 
 FASHION_MNIST_RAW_DIR = os.path.join(INPUT_DIR, "FashionMNIST", "raw")
 
-FMNIST_LABELS = {
-    0: "Shirt (casual)",
-    1: "Trousers",
-    2: "Pullover",
-    3: "Dress",
-    4: "Coat",
-    5: "Sandal",
-    6: "Shirt (formal)",
-    7: "Sneaker",
-    8: "Bag",
-    9: "Boot",
-}
+FMNIST_LABELS = [
+    "Shirt (casual)",
+    "Trousers",
+    "Pullover",
+    "Dress",
+    "Coat",
+    "Sandal",
+    "Shirt (formal)",
+    "Sneaker",
+    "Bag",
+    "Boot",
+]
 
 PREDICT_IMAGES = [
     os.path.join(INPUT_DIR, "bag.png"),
@@ -64,6 +64,7 @@ if __name__ == "__main__":
 
     os.makedirs(INPUT_DIR, exist_ok=True)
     os.makedirs(OUTPUT_DIR, exist_ok=True)
+
     os.makedirs(FASHION_MNIST_RAW_DIR, exist_ok=True)
 
     if not examples:

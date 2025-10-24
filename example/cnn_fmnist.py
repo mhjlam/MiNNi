@@ -104,7 +104,7 @@ def train_predict(X, y, Xt, yt):
 
     # Generate confusion matrix
     cm = metrics.confusion_matrix(yt, y_pred)
-    disp = metrics.ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=list(example.FMNIST_LABELS.values()))
+    disp = metrics.ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=example.FMNIST_LABELS)
 
     # Plot and save confusion matrix
     disp.plot(cmap=plt.cm.Blues, xticks_rotation='vertical')

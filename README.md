@@ -4,6 +4,8 @@ MiNNi (Mini Neural Network) is a lightweight, educational neural network framewo
 
 The implementation is based on the book [Neural Networks from Scratch](https://nnfs.io) by Harrison Kinsley & Daniel Kukiela.
 
+![Animation](media/network.gif)
+
 ## Key Features
 
 - **Pure Python Implementation**: Built from the ground, using only Python 3 and NumPy.

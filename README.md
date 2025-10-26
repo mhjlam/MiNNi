@@ -1,10 +1,14 @@
-# Mini Neural Network
+# MiNNi
+
+Mini Neural Network
+
+<p align="center">
+   <img src="media/regression.gif" alt="Demo Animation" width="720"/>
+</p>
 
 MiNNi (Mini Neural Network) is a lightweight, educational neural network framework built from scratch in Python. Designed with simplicity and clarity in mind, MiNNi provides a clean, intuitive API for building, training, and deploying neural networks without the complexity of larger frameworks.
 
 The implementation is based on the book [Neural Networks from Scratch](https://nnfs.io) by Harrison Kinsley & Daniel Kukiela.
-
-![Animation](media/network.gif)
 
 ## Key Features
 

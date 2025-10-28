@@ -1,6 +1,9 @@
 # MiNNi
 
-Mini Neural Network
+**Mini Neural Network**
+
+> Maurits Lam
+> 2025
 
 <p align="center">
    <img src="media/regression.gif" alt="Demo Animation" width="720"/>

@@ -2,7 +2,7 @@
 
 **Mini Neural Network**
 
-> Maurits Lam
+> Maurits Lam  
 > 2025
 
 <p align="center">
